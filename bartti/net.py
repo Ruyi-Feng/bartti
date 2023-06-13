@@ -6,6 +6,8 @@ class Embedding(nn.Module):
     def __init__(self, config):
         super(Embedding, self).__init__()
         vocab_sz, self.d_model = config.vocab_sz, config.d_model
+        ##### pos embed要改成一个token同样的pos embed
+        ##### 需要增加一个frame embed
         self._pos_embed = nn.Parameters(torch.rand(config.batch, config.d_model, config.seq_len))  # seq_len 也可以不固定
         self._embeding = nn.Embedding(vocab_sz, self.d_model, padding_idx)
 
