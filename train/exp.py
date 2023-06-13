@@ -4,7 +4,7 @@ import time
 import torch
 import torch.nn as nn
 from torch import optim
-from train.exp_basic import Exp_Basic
+from train.exp import Exp_Basic
 from train.dataset import Dataset_Bart
 from bartti.net import Bart
 from torch.utils.data import DataLoader
@@ -128,3 +128,37 @@ class Exp_Main(Exp_Basic):
         trues = trues.reshape(-1, trues.shape[-2], trues.shape[-1])
         mae, mse, rmse, mape, mspe = metric(outputs, trues)
         print('mse:{}, mae:{}'.format(mse, mae))
+
+
+class Exp_Basic(object):
+    def __init__(self, args):
+        self.args = args
+        self.device = self._acquire_device()
+        self.model = self._build_model().to(self.device)
+
+    def _build_model(self):
+        raise NotImplementedError
+        return None
+
+    def _acquire_device(self):
+        if self.args.use_gpu:
+            os.environ["CUDA_VISIBLE_DEVICES"] = str(
+                self.args.gpu) if not self.args.use_multi_gpu else self.args.devices
+            device = torch.device('cuda:{}'.format(self.args.gpu))
+            print('Use GPU: cuda:{}'.format(self.args.gpu))
+        else:
+            device = torch.device('cpu')
+            print('Use CPU')
+        return device
+
+    def _get_data(self):
+        pass
+
+    def vali(self):
+        pass
+
+    def train(self):
+        pass
+
+    def test(self):
+        pass
