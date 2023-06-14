@@ -35,18 +35,19 @@ class Data_Form:
     def _run(self, flnm: str, cols: object):
         data = pd.read_csv(self.flnms[flnm])
         data = data.sort_values(by=cols.frame).reset_index(drop=True)
-        f_data = open(".\data\data.bin", 'a+')
-        f_index = open(".\data\index.bin", 'a+')
+        f_data = open(".\data\data.bin", 'ab+')
+        f_index = open(".\data\index.bin", 'ab+')
         self.window.clear()  # 新flnm清空window
         for ID, group in data.groupby(data[cols.frame]):
             byte_frame = 0
             for _, row in group.iterrows():
-                row_s = "{:.2f},{:.2f},{:.2f},{:.2f},{:.2f},{:.2f}\r".format(ID, row[cols.car_id], row[cols.left] + 0.5 * row[cols.width], row[cols.top] + 0.5 * row[cols.height], row[cols.width], row[cols.height])
-                f_data.write(row_s)
-                byte_frame += len(row_s.encode())
+                row_s = "{:.2f},{:.2f},{:.2f},{:.2f},{:.2f},{:.2f}\n".format(ID, row[cols.car_id], row[cols.left] + 0.5 * row[cols.width], row[cols.top] + 0.5 * row[cols.height], row[cols.width], row[cols.height])
+                row_s = row_s.encode()
+                write_len = f_data.write(row_s)
+                byte_frame += write_len
             notable, head, tail = self._update_window(byte_frame)
             if notable:
-                idx_s = "{:s},{:d},{:d}\n".format(self._get_only_id(flnm, ID), head, tail)
+                idx_s = "{:s},{:d},{:d}\n".format(self._get_only_id(flnm, ID), head, tail).encode()
                 f_index.write(idx_s)
 
     def _get_only_id(self, flnm, ID):
