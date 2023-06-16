@@ -7,7 +7,7 @@ MaskScheme = typing.List[typing.Tuple[int, int]]
 
 
 class Noise():
-    def __init__(self, noise_rate: float = 0.5, del_rate: float = 0.5, msk_rate: float = 0.5, poisson_rate: int = 3):
+    def __init__(self, noise_rate: float = 0.5, del_rate: float = 0.5, msk_rate: float = 0.5, poisson_rate: int = 3, frame_interval: float = 0.03) -> None:
         """
         noise_rate:
         ----------
@@ -26,6 +26,7 @@ class Noise():
         when add noise by randomly mask vehicles of one frame,
         msk_rate percent of vehicles will be masked in one frame.
         """
+        self.IN = frame_interval
         self.noise_rate = noise_rate
         self.del_rate = del_rate
         self.msk_rate = msk_rate
@@ -74,11 +75,44 @@ class Noise():
 
     def _noise_three(self, x):
         """_noise_three直接删掉一整帧 (1/2 改ID)"""
-        pass
+        cur_frame = -1
+        del_frame = random.randint(1, 4)
+        change_ID = self._randoms_half()
+        n_x = []
+        ID_base = int(len(x) / 5 - 1)
+        for line in x:
+            if line[0] == self.IN:
+                cur_frame += 1
+                n_x.append(line)
+                continue
+            if cur_frame != del_frame:
+                n_x.append(line[0] + float(change_ID and (cur_frame > del_frame)) * ID_base + line[1:])
+        return n_x
 
     def _noise_four(self, x):
         """_noise_four交换两帧位置"""
-        pass
+        cur_frame = -1
+        ids = random.sample(range(1, 4), 2)
+        min_id, max_id = min(ids), max(ids)
+        pre_frames = []
+        inter_frames = []
+        post_frames = []
+        frame_1 = []
+        frame_2 = []
+        for line in x:
+            if line[0] == self.IN:
+                cur_frame += 1
+            if cur_frame == min_id:
+                frame_1.append(line)
+            elif cur_frame == max_id:
+                frame_2.append(line)
+            elif cur_frame < min_id:
+                pre_frames.append(line)
+            elif cur_frame > max_id:
+                post_frames.append(line)
+            else:
+                inter_frames.append(line)
+        return pre_frames + frame_1 + inter_frames + frame_2 + post_frames
 
     def _mask(self, tokens: typing.List[str], mask_scheme: MaskScheme) -> typing.List[str]:
         mask_scheme = dict(mask_scheme)
@@ -166,6 +200,9 @@ class Noise():
 
     def _trans_type(self) -> int:
         return random.randint(0, 3)
+
+    def _randoms_half(self) -> bool:
+        return random.random() < 0.5
 
     def _add_head_mark(self, x: list) -> list:
         return self.head_mark + x.pop()
