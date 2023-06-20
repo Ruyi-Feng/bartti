@@ -26,20 +26,19 @@ class Noise():
         when add noise by randomly mask vehicles of one frame,
         msk_rate percent of vehicles will be masked in one frame.
         """
-        self.IN = frame_interval
+        self.IN = frame_interval  # 0.03 <s>
         self.noise_rate = noise_rate
         self.del_rate = del_rate
         self.msk_rate = msk_rate
         self._poisson_rate = poisson_rate
         self._poisson_dist = self._build_poisson_dist()
         self.head_mark = [666.0, 666.0, 666.0, 666.0, 666.0]
+        self._mask_token = [725.0, 725.0, 725.0, 725.0, 725.0]
+        self.frame_mark = [self.IN, self.IN, self.IN, self.IN, self.IN]
 
     def _noise_one(self, x):
-        """_noise_one 选del_rate的车挖掉一帧 (1/2 改ID)
-        这里需要注意考虑别把帧间隔删掉了
-
-        ############这个属实没看懂丁总写的啥#############
-        其实我应该改成按照poisson_dict sample 的删掉
+        """_noise_one 选del_rate的车按照泊松删掉
+        帧间隔保留
         """
         seq_len = len(x)
         del_len = self._pocess_len(seq_len, self.del_rate)
@@ -48,17 +47,15 @@ class Noise():
         spans = self._gen_spans(del_len)
         n_spans = len(spans)
         n_possible_insert_poses = seq_len - sum(spans) - n_spans + 1
-        abs_insert_poses = sorted(self._rand.sample(
+        abs_insert_poses = sorted(random.sample(
             range(n_possible_insert_poses), n_spans))
-        mask_scheme = self._distribute_insert_poses(abs_insert_poses, spans)
-        mask_scheme = self._random_add_one(mask_scheme)
-        return self._mask(x, mask_scheme)
+        del_scheme = self._distribute_insert_poses(abs_insert_poses, spans)
+        del_scheme = self._random_add_one(del_scheme)
+        return self._del(x, del_scheme)
 
     def _noise_two(self, x):
         """_noise_two 选msk_rate的车mask(替换掉)
-        mask功能应该一样可以抄吧
-        注意帧间隔要改一下
-        确认一下mask的序列的形式
+        帧间隔保留
         """
         seq_len = len(x)
         del_len = self._pocess_len(seq_len, self.del_rate)
@@ -67,7 +64,7 @@ class Noise():
         spans = self._gen_spans(del_len)
         n_spans = len(spans)
         n_possible_insert_poses = seq_len - sum(spans) - n_spans + 1
-        abs_insert_poses = sorted(self._rand.sample(
+        abs_insert_poses = sorted(random.sample(
             range(n_possible_insert_poses), n_spans))
         mask_scheme = self._distribute_insert_poses(abs_insert_poses, spans)
         mask_scheme = self._random_add_one(mask_scheme)
@@ -79,21 +76,21 @@ class Noise():
         del_frame = random.randint(1, 4)
         change_ID = self._randoms_half()
         n_x = []
-        ID_base = int(len(x) / 5 - 1)
+        ID_base = self.car_num + random.randint(0, 20)
         for line in x:
             if line[0] == self.IN:
                 cur_frame += 1
                 n_x.append(line)
                 continue
             if cur_frame != del_frame:
-                n_x.append(line[0] + float(change_ID and (cur_frame > del_frame)) * ID_base + line[1:])
+                n_x.append([line[0] + float(change_ID and (cur_frame > del_frame)) * ID_base] + line[1:])
         return n_x
 
     def _noise_four(self, x):
         """_noise_four交换两帧位置"""
         cur_frame = -1
         ids = random.sample(range(1, 4), 2)
-        min_id, max_id = min(ids), max(ids)
+        min_id, max_id = sorted(ids)
         pre_frames = []
         inter_frames = []
         post_frames = []
@@ -114,12 +111,16 @@ class Noise():
                 inter_frames.append(line)
         return pre_frames + frame_1 + inter_frames + frame_2 + post_frames
 
-    def _mask(self, tokens: typing.List[str], mask_scheme: MaskScheme) -> typing.List[str]:
+    def _mask(self, tokens: typing.List[list], mask_scheme: MaskScheme) -> typing.List[list]:
         mask_scheme = dict(mask_scheme)
         masked_tokens = []
         current_span = 0
         for i, t in enumerate(tokens):
             if i in mask_scheme:
+                # mask tokens except frame_mark
+                for j in range(mask_scheme[i]):
+                    if (i+j) % self.car_num == 0:
+                        masked_tokens.append(self.frame_mark)
                 masked_tokens.append(self._mask_token)
                 current_span = mask_scheme[i] - 1
                 continue
@@ -128,6 +129,46 @@ class Noise():
                 continue
             masked_tokens.append(t)
         return masked_tokens
+
+    def _del(self, tokens: typing.List[list], del_scheme: MaskScheme) -> typing.List[list]:
+        del_scheme = dict(del_scheme)
+        del_tokens = []
+        current_span = 0
+        for i, t in enumerate(tokens):
+            if i in del_scheme:
+                # del tokens except frame_mark
+                for j in range(del_scheme[i]):
+                    if (i+j) % self.car_num == 0:
+                        del_tokens.append(self.frame_mark)
+                current_span = del_scheme[i] - 1
+                continue
+            if current_span > 0:
+                current_span -= 1
+                continue
+            del_tokens.append(t)
+        del_tokens = self._change_id(del_tokens)
+        return del_tokens
+
+    def _change_id(self, tokens: typing.List[list]) -> typing.List[list]:
+        change_ID = self._randoms_half()
+        if change_ID:
+            last_id_dict = {}  # {ori: change}
+            curr_id_dict = {}
+            for i in range(len(tokens)):
+                t = tokens[i]
+                if t[0] == self.IN:
+                    last_id_dict = curr_id_dict.copy()
+                    curr_id_dict = {}
+                    continue
+                if t[0] in last_id_dict:
+                    curr_id_dict.update({t[0]: last_id_dict[t[0]]})
+                    tokens[i][0] = last_id_dict[t[0]]
+                else:
+                    ID_base = self.car_num + random.randint(0, 20)
+                    curr_id_dict.update({t[0]: t[0] + ID_base})
+                    tokens[i][0] = t[0] + ID_base
+        return tokens
+
 
     def _distribute_insert_poses(self, abs_insert_poses: typing.List[int], spans: typing.List[int]) -> MaskScheme:
         offset = 0
@@ -188,6 +229,7 @@ class Noise():
         - _noise_three直接删掉一整帧 (1/2 改ID)
         - _noise_four交换两帧位置
         """
+        self.car_num = int(len(x) / 5 - 1)
         trans_type = self._trans_type()
         if trans_type == 0:
             return self._noise_one(x)

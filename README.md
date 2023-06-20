@@ -12,10 +12,12 @@ Vehicle trajectory prediction preforms an essential basement of several related 
   - 增加帧间隔符
   - 把没有连续出现的车删去，只保留连续五帧都在的车
 - 挖空
-  - _noise_one 选r%的车挖掉一帧（1/2 改ID）
-  - _noise_two 选r%的车mask(替换掉)
-  - _noise_three直接删掉一整帧 （1/2 改ID）
-  - _noise_four交换两帧位置
+  - _noise_one 选r%的车挖掉一帧（1/2 改ID） [done]
+  - _noise_two 选r%的车mask(替换掉) [done]
+  - _noise_three直接删掉一整帧 （1/2 改ID） [done]
+  - _noise_four交换两帧位置 [done]
 - 有embed要改一下
 - 大数据集制作，需要注意归一化一下车辆出现的位置
 - main
+
+
