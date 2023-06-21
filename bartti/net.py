@@ -1,19 +1,27 @@
 import torch.nn as nn
 import torch
-import numpy as np
 
 class Embedding(nn.Module):
     def __init__(self, config):
         super(Embedding, self).__init__()
-        vocab_sz, self.d_model = config.vocab_sz, config.d_model
-        ##### pos embed要改成一个token同样的pos embed
-        ##### 需要增加一个frame embed
-        self._pos_embed = nn.Parameters(torch.rand(config.batch, config.d_model, config.seq_len))  # seq_len 也可以不固定
-        self._embeding = nn.Embedding(vocab_sz, self.d_model, padding_idx)
+        vocab_sz, self.d_model, padding_idx = config.vocab_sz, config.d_model, config.padding_idx
+        padding = 1 if torch.__version__ >= '1.5.0' else 2
+        self._pos_embed = nn.Parameter(torch.rand(1, config.max_len, 1))  # 对于每个token的pos_embed是一样的
+        # cov input x: [batch, seq_len, c_in]
+        self._embeding = nn.Conv1d(in_channels=config.c_in, out_channels=config.d_model,
+                                   kernel_size=3, padding=padding, padding_mode='circular', bias=False)
+        self._frm_embed = nn.Parameter(torch.rand(5, 1))
 
-    def forward(self, x):
-        return self._embeding(x) + self._pos_embed(np.arrange(self.d_model))
-
+    def forward(self, x, mark):
+        for i in mark:
+            if frm_mark is None:
+                frm_mark = torch.ones((1, i, 1)).float()
+                continue
+            else:
+                frm_mark = torch.cat([frm_mark, torch.ones(1, i, 1).float()], dim=1)
+        # ! 这里需要检查维度是否正确
+        return self._embeding(x.permute(0, 2, 1)).transpose(1, 2) + \
+            self._pos_embed.data[:, :x.shape[1], :] + frm_mark
 
 class Bart(nn.Module):
     def __init__(self, config):
@@ -24,7 +32,7 @@ class Bart(nn.Module):
                                    num_encoder_layers=config.e_layers,
                                    num_decoder_layers=config.d_layers)
 
-    def forward(self, x):
-        enc_token = self.enc_embeding(x)
-        dec_token = self.dec_embeding(x)
+    def forward(self, enc_x, enc_mark, dec_x, dec_mark):
+        enc_token = self.enc_embeding(enc_x, enc_mark)
+        dec_token = self.dec_embeding(dec_x, dec_mark)
         self.bart(enc_token, dec_token)

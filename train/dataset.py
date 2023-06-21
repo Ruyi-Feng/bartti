@@ -64,8 +64,8 @@ class Dataset_Bart(Dataset):
         self.f_data.seek(head)
         info = self.f_data.read(tail - head)
         x = self._trans_to_array(info)
-        self.enc_x, self.dec_x, self.gt_x = self.trans.derve(x)  # 这个是用来随机挖空的
-        return self.enc_x, self.dec_x, self.gt_x
+        enc_x, enc_mark, dec_x, dec_mark, gt_x = self.trans.derve(x)  # 这个是用来随机挖空的
+        return enc_x, enc_mark, dec_x, dec_mark, gt_x
 
     def __len__(self):
         return self.dataset_length

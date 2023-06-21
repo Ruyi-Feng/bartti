@@ -122,8 +122,7 @@ class Noise():
                     if (i+j) % self.car_num == 0:
                         masked_tokens.append(self.frame_mark)
                 masked_tokens.append(self._mask_token)
-                current_span = mask_scheme[i] - 1
-                continue
+                current_span = mask_scheme[i]
             if current_span > 0:
                 current_span -= 1
                 continue
@@ -140,8 +139,7 @@ class Noise():
                 for j in range(del_scheme[i]):
                     if (i+j) % self.car_num == 0:
                         del_tokens.append(self.frame_mark)
-                current_span = del_scheme[i] - 1
-                continue
+                current_span = del_scheme[i]
             if current_span > 0:
                 current_span -= 1
                 continue
@@ -252,11 +250,34 @@ class Noise():
     def _if_noise(self) -> bool:
         return random.random() < self.noise_rate
 
-    def derve(self, x) -> typing.Tuple[list, list, list]:
+    def _count_list(self, x: typing.List[list]) -> list:
+        counts = []
+        for item in x:
+            if item[0] == self.IN:
+                if cur_count is not None:
+                    counts.append(cur_count)
+                cur_count = 0
+            cur_count += 1
+        return counts
+
+    def _gen_mark(self, enc_x, dec_x):
+        return self._count_list(enc_x), self._count_list(dec_x)
+
+
+    def derve(self, x: typing.List[list]) -> typing.Tuple[list, list, list, list, list]:
+        """
+        return
+        ------
+        enc_x: typing.List[list]
+        enc_mark: typing.List[1, 5]
+
+        enc_mark means how many lines in each frames in enc_x
+        """
         x_copy = x.copy()
         dec_x = self._add_head_mark(x_copy)
         if self._if_noise():
             enc_x = self._add_noise(x_copy)
         else:
             enc_x = x.copy()
-        return enc_x, dec_x, x
+        enc_mark, dec_mark = self._gen_mark(enc_x, dec_x)
+        return enc_x, enc_mark, dec_x, dec_mark, x

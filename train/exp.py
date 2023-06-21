@@ -46,10 +46,10 @@ class Exp_Main(Exp_Basic):
         total_loss = []
         self.model.eval()
         with torch.no_grad():
-            for i, (enc_x, dec_x, gt_x) in enumerate(vali_loader):
+            for i, (enc_x, enc_mark, dec_x, dec_mark, gt_x) in enumerate(vali_loader):
                 enc_x = enc_x.float().to(self.device)
                 dec_x = dec_x.float().to(self.device)
-                outputs = self.model(enc_x, dec_x)
+                outputs = self.model(enc_x, enc_mark, dec_x, dec_mark)
                 loss = criterion(outputs, gt_x.to(self.device))
                 total_loss.append(loss)
         total_loss = np.average(total_loss)
@@ -74,13 +74,13 @@ class Exp_Main(Exp_Basic):
             self.model.train()
             epoch_time = time.time()
 
-            for i, (enc_x, dec_x, gt_x) in enumerate(train_loader):
+            for i, (enc_x, enc_mark, dec_x, dec_mark, gt_x) in enumerate(train_loader):
                 iter_count += 1
                 model_optim.zero_grad()
                 enc_x = enc_x.float().to(self.device)
                 dec_x = dec_x.float().to(self.device)
 
-                outputs = self.model(enc_x, dec_x)
+                outputs = self.model(enc_x, enc_mark, dec_x, dec_mark)
 
                 loss = criterion(outputs, gt_x.to(self.device))
                 train_loss.append(loss.item())
@@ -117,10 +117,10 @@ class Exp_Main(Exp_Basic):
         outputs = []
         trues = []
         with torch.no_grad():
-            for i, (enc_x, dec_x, gt_x) in enumerate(test_loader):
+            for i, (enc_x, enc_mark, dec_x, dec_mark, gt_x) in enumerate(test_loader):
                 enc_x = enc_x.float().to(self.device)
                 dec_x = dec_x.float().to(self.device)
-                output = self.model(enc_x, dec_x)
+                output = self.model(enc_x, enc_mark, dec_x, dec_mark)
                 output = output.detach().cpu().numpy()
                 outputs.append(output)
                 trues.append(gt_x)
