@@ -7,7 +7,7 @@ MaskScheme = typing.List[typing.Tuple[int, int]]
 
 
 class Noise():
-    def __init__(self, noise_rate: float = 0.5, del_rate: float = 0.5, msk_rate: float = 0.5, poisson_rate: int = 3, frame_interval: float = 0.03) -> None:
+    def __init__(self, noise_rate: float = 0.5, del_rate: float = 0.5, msk_rate: float = 0.5, poisson_rate: int = 3, frame_interval: float = 0.03, max_span_len: int = 10, max_seq_len: int = 128) -> None:
         """
         noise_rate:
         ----------
@@ -31,6 +31,8 @@ class Noise():
         self.del_rate = del_rate
         self.msk_rate = msk_rate
         self._poisson_rate = poisson_rate
+        self._max_span_len = max_span_len
+        self.max_seq_len = max_seq_len
         self._poisson_dist = self._build_poisson_dist()
         self.head_mark = [666.0, 666.0, 666.0, 666.0, 666.0]
         self._mask_token = [725.0, 725.0, 725.0, 725.0, 725.0]
@@ -178,7 +180,7 @@ class Noise():
         return mask_scheme
 
     def _random_add_one(self, mask_scheme: MaskScheme) -> MaskScheme:
-        should_add_one = self._rand.random() < 0.5
+        should_add_one = random.random() < 0.5
         if should_add_one:
             mask_scheme = [(insert_pos + 1, span)
                            for insert_pos, span in mask_scheme]
@@ -245,24 +247,34 @@ class Noise():
         return random.random() < 0.5
 
     def _add_head_mark(self, x: list) -> list:
-        return self.head_mark + x.pop()
+        x.pop()
+        return [self.head_mark] + x
 
     def _if_noise(self) -> bool:
         return random.random() < self.noise_rate
 
     def _count_list(self, x: typing.List[list]) -> list:
         counts = []
+        cur_count = 0
         for item in x:
             if item[0] == self.IN:
-                if cur_count is not None:
+                if len(counts) > 1:
                     counts.append(cur_count)
-                cur_count = 0
+                    cur_count = 0
             cur_count += 1
         return counts
 
     def _gen_mark(self, enc_x, dec_x):
         return self._count_list(enc_x), self._count_list(dec_x)
 
+    def _comp(self, sec):
+        if len(sec) < self.max_seq_len:
+            pass
+        return sec
+
+    def _comp_zero(self, enc_x, enc_mark, dec_x, dec_mark, x):
+        #  ! 注意这里x 和 mark的维度可能不一样，检验是否全部要对齐到max_seq_len
+        return self._comp(enc_x), self._comp(enc_mark), self._comp(dec_x), self._comp(dec_mark), self._comp(x)
 
     def derve(self, x: typing.List[list]) -> typing.Tuple[list, list, list, list, list]:
         """
@@ -280,4 +292,4 @@ class Noise():
         else:
             enc_x = x.copy()
         enc_mark, dec_mark = self._gen_mark(enc_x, dec_x)
-        return enc_x, enc_mark, dec_x, dec_mark, x
+        return self._comp_zero(enc_x, enc_mark, dec_x, dec_mark, x)

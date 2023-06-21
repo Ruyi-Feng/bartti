@@ -4,8 +4,8 @@ import typing
 
 
 class Dataset_Bart(Dataset):
-    def __init__(self, index_path: str=".\\data\\index.bin", data_path:str=".\\data\\data.bin", interval:float=0.03):
-        self.trans = Noise()
+    def __init__(self, index_path: str=".\\data\\index.bin", data_path:str=".\\data\\data.bin", interval:float=0.03, max_seq_len: int=128):
+        self.trans = Noise(max_seq_len=max_seq_len)
         self.train_idx = []
         self.dataset_length = 0
         self.IN = interval
@@ -13,13 +13,13 @@ class Dataset_Bart(Dataset):
         self.data_path = data_path
         self.f_data = open(self.data_path, 'rb')
         for line in open(self.idx_path, 'rb'):
-            line = line.decode()
+            line = line.decode().split()[0].split(',')
             self.train_idx.append([line[0], int(line[1]), int(line[2])])
             self.dataset_length += 1
 
     def _update(self, data_list: list, car_dict: dict, item: float) -> typing.Tuple[list, dict]:
         data_list.append([self.IN, self.IN, self.IN, self.IN, self.IN])
-        car_dict.setdefault(item, set())
+        car_dict.setdefault(item, set())  # {frame: set()}
         return data_list, car_dict
 
     def _form_frames(self, info: str) -> typing.Tuple[list, dict]:
@@ -27,26 +27,27 @@ class Dataset_Bart(Dataset):
         car_dict = {}
         lines = info.split()
         for line in lines:
-            line = line.split(',')
+            line = line.decode().split(',')
             line_data = []
             for i in range(len(line)):
                 item = float(line[i])
                 if (i == 0) and (item not in car_dict):
                     data_list, car_dict = self._update(data_list, car_dict, item)
                 if i == 1:
-                    car_dict[line_data[0]].add(item)
+                    car_dict[float(line[0])].add(item)
                 if i != 0:
                     line_data.append(float(item))
             data_list.append(line_data)
         return data_list, car_dict
 
-    def _intersection(self, car_dict: dict) -> set:
+    def _intersection(self, car_dict: dict, intersection=None) -> set:
         for k in car_dict:
             if intersection is None:
                 intersection = car_dict[k]
             else:
                 intersection = intersection.intersection(car_dict[k])
-        return intersection.add(self.IN)
+        intersection.add(self.IN)
+        return intersection
 
     def _select_continue_car(self, car_set: set, data_list: list) -> list:
         for line in data_list:
