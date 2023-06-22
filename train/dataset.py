@@ -4,7 +4,7 @@ import typing
 
 
 class Dataset_Bart(Dataset):
-    def __init__(self, index_path: str=".\\data\\index.bin", data_path:str=".\\data\\data.bin", interval:float=0.03, max_seq_len: int=128):
+    def __init__(self, index_path: str=".\\data\\index.bin", data_path:str=".\\data\\data.bin", interval:float=0.03, max_seq_len: int=512):
         self.trans = Noise(max_seq_len=max_seq_len)
         self.train_idx = []
         self.dataset_length = 0

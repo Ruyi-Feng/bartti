@@ -1,4 +1,5 @@
 import math
+import numpy as np
 import random
 import torch
 import typing
@@ -7,7 +8,7 @@ MaskScheme = typing.List[typing.Tuple[int, int]]
 
 
 class Noise():
-    def __init__(self, noise_rate: float = 0.5, del_rate: float = 0.5, msk_rate: float = 0.5, poisson_rate: int = 3, frame_interval: float = 0.03, max_span_len: int = 10, max_seq_len: int = 128) -> None:
+    def __init__(self, noise_rate: float = 0.5, del_rate: float = 0.5, msk_rate: float = 0.5, poisson_rate: int = 3, frame_interval: float = 0.03, max_span_len: int = 10, max_seq_len: int = 512) -> None:
         """
         noise_rate:
         ----------
@@ -37,6 +38,7 @@ class Noise():
         self.head_mark = [666.0, 666.0, 666.0, 666.0, 666.0]
         self._mask_token = [725.0, 725.0, 725.0, 725.0, 725.0]
         self.frame_mark = [self.IN, self.IN, self.IN, self.IN, self.IN]
+        self.replen_mark = [0.0, 0.0, 0.0, 0.0, 0.0]
 
     def _noise_one(self, x):
         """_noise_one 选del_rate的车按照泊松删掉
@@ -121,7 +123,7 @@ class Noise():
             if i in mask_scheme:
                 # mask tokens except frame_mark
                 for j in range(mask_scheme[i]):
-                    if (i+j) % self.car_num == 0:
+                    if (i+j) % (self.car_num + 1) == 0:
                         masked_tokens.append(self.frame_mark)
                 masked_tokens.append(self._mask_token)
                 current_span = mask_scheme[i]
@@ -139,7 +141,7 @@ class Noise():
             if i in del_scheme:
                 # del tokens except frame_mark
                 for j in range(del_scheme[i]):
-                    if (i+j) % self.car_num == 0:
+                    if (i+j) % (self.car_num + 1) == 0:
                         del_tokens.append(self.frame_mark)
                 current_span = del_scheme[i]
             if current_span > 0:
@@ -231,6 +233,7 @@ class Noise():
         """
         self.car_num = int(len(x) / 5 - 1)
         trans_type = self._trans_type()
+        # print("trans_type", trans_type)
         if trans_type == 0:
             return self._noise_one(x)
         elif trans_type == 1:
@@ -247,8 +250,9 @@ class Noise():
         return random.random() < 0.5
 
     def _add_head_mark(self, x: list) -> list:
-        x.pop()
-        return [self.head_mark] + x
+        x_c = x.copy()
+        x_c.pop()
+        return [self.head_mark] + x_c
 
     def _if_noise(self) -> bool:
         return random.random() < self.noise_rate
@@ -256,32 +260,39 @@ class Noise():
     def _count_list(self, x: typing.List[list]) -> list:
         counts = []
         cur_count = 0
+        head_count = 0
         for item in x:
+            if item[0] == self.head_mark[0]:
+                head_count += 1
+                continue
             if item[0] == self.IN:
-                if len(counts) > 1:
-                    counts.append(cur_count)
-                    cur_count = 0
+                if cur_count == 0:
+                    cur_count += 1
+                    continue
+                counts.append(cur_count)
+                cur_count = 0
             cur_count += 1
+        counts.append(cur_count)
+        counts[0] += head_count
         return counts
 
     def _gen_mark(self, enc_x, dec_x):
         return self._count_list(enc_x), self._count_list(dec_x)
 
     def _comp(self, sec):
-        if len(sec) < self.max_seq_len:
-            pass
+        while len(sec) < self.max_seq_len:
+            sec.append(self.replen_mark)
         return sec
 
-    def _comp_zero(self, enc_x, enc_mark, dec_x, dec_mark, x):
-        #  ! 注意这里x 和 mark的维度可能不一样，检验是否全部要对齐到max_seq_len
-        return self._comp(enc_x), self._comp(enc_mark), self._comp(dec_x), self._comp(dec_mark), self._comp(x)
+    def _comp_zero(self, enc_x, enc_mark, dec_x, dec_mark, x) -> tuple:
+        return np.array(self._comp(enc_x)), np.array(enc_mark), np.array(self._comp(dec_x)), np.array(dec_mark), np.array(self._comp(x))
 
     def derve(self, x: typing.List[list]) -> typing.Tuple[list, list, list, list, list]:
         """
         return
         ------
-        enc_x: typing.List[list]
-        enc_mark: typing.List[1, 5]
+        enc_x: np.array -> torch(size=[batch, seq_len, c_in])
+        enc_mark: np.array -> torch(size=[batch, 5])
 
         enc_mark means how many lines in each frames in enc_x
         """
