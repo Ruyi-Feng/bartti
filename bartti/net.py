@@ -4,7 +4,7 @@ import torch
 class Embedding(nn.Module):
     def __init__(self, config):
         super(Embedding, self).__init__()
-        vocab_sz, self.d_model, padding_idx = config.vocab_sz, config.d_model, config.padding_idx
+        self.d_model = config.d_model
         padding = 1 if torch.__version__ >= '1.5.0' else 2
         self._pos_embed = nn.Parameter(torch.rand(1, config.max_len, 1))  # 对于每个token的pos_embed是一样的
         # cov input x: [batch, seq_len, c_in]

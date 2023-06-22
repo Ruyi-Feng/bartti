@@ -20,8 +20,8 @@ class Exp_Main(Exp_Basic):
             model = nn.DataParallel(model, device_ids=self.args.device_ids)
         return model
 
-    def _get_data(self, param):
-        data_set = Dataset_Bart(**param)
+    def _get_data(self):
+        data_set = Dataset_Bart(index_path=self.args.index_path, data_path=self.args.data_path, interval=self.args.interval, max_seq_len=self.args.max_seq_len)
         shuffle_flag = True if self.args.is_train else False
         data_loader = DataLoader(data_set, batch_size=self.args.batch_size, shuffle=shuffle_flag, num_workers=self.args.num_workers, drop_last=self.args.drop_last)
         return data_set, data_loader
