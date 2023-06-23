@@ -1,3 +1,4 @@
+import copy
 import math
 import numpy as np
 import random
@@ -250,7 +251,7 @@ class Noise():
         return random.random() < 0.5
 
     def _add_head_mark(self, x: list) -> list:
-        x_c = x.copy()
+        x_c = copy.deepcopy(x)
         x_c.pop()
         return [self.head_mark] + x_c
 
@@ -285,7 +286,8 @@ class Noise():
         return sec
 
     def _comp_zero(self, enc_x, enc_mark, dec_x, dec_mark, x) -> tuple:
-        return np.array(self._comp(enc_x)), np.array(enc_mark), np.array(self._comp(dec_x)), np.array(dec_mark), np.array(self._comp(x))
+        rt = np.array(self._comp(enc_x)), np.array(enc_mark), np.array(self._comp(dec_x)), np.array(dec_mark), np.array(self._comp(x))
+        return rt
 
     def derve(self, x: typing.List[list]) -> typing.Tuple[list, list, list, list, list]:
         """
@@ -296,11 +298,11 @@ class Noise():
 
         enc_mark means how many lines in each frames in enc_x
         """
-        x_copy = x.copy()
+        x_copy = copy.deepcopy(x)
         dec_x = self._add_head_mark(x_copy)
         if self._if_noise():
             enc_x = self._add_noise(x_copy)
         else:
-            enc_x = x.copy()
+            enc_x = copy.deepcopy(x)
         enc_mark, dec_mark = self._gen_mark(enc_x, dec_x)
         return self._comp_zero(enc_x, enc_mark, dec_x, dec_mark, x)
