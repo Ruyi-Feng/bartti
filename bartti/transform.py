@@ -121,17 +121,17 @@ class Noise():
         masked_tokens = []
         current_span = 0
         for i, t in enumerate(tokens):
+            # mask tokens except frame_mark
+            if i % (self.car_num + 1) == 0:
+                masked_tokens.append(self.frame_mark)
             if i in mask_scheme:
-                # mask tokens except frame_mark
-                for j in range(mask_scheme[i]):
-                    if (i+j) % (self.car_num + 1) == 0:
-                        masked_tokens.append(self.frame_mark)
                 masked_tokens.append(self._mask_token)
                 current_span = mask_scheme[i]
             if current_span > 0:
                 current_span -= 1
                 continue
-            masked_tokens.append(t)
+            if i % (self.car_num + 1) != 0:
+                masked_tokens.append(t)
         return masked_tokens
 
     def _del(self, tokens: typing.List[list], del_scheme: MaskScheme) -> typing.List[list]:
@@ -139,16 +139,16 @@ class Noise():
         del_tokens = []
         current_span = 0
         for i, t in enumerate(tokens):
+            # del tokens except frame_mark
+            if i % (self.car_num + 1) == 0:
+                del_tokens.append(self.frame_mark)
             if i in del_scheme:
-                # del tokens except frame_mark
-                for j in range(del_scheme[i]):
-                    if (i+j) % (self.car_num + 1) == 0:
-                        del_tokens.append(self.frame_mark)
                 current_span = del_scheme[i]
             if current_span > 0:
                 current_span -= 1
                 continue
-            del_tokens.append(t)
+            if i % (self.car_num + 1) != 0:
+                del_tokens.append(t)
         del_tokens = self._change_id(del_tokens)
         return del_tokens
 
