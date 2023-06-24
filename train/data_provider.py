@@ -2,13 +2,15 @@ import pandas as pd
 from collections import deque
 
 class Cols:
-    def __init__(self):
-        self.frame = "frame"
-        self.car_id = "car_id"
-        self.left = "left"
-        self.top = "top"
-        self.width = "width"
-        self.height = "height"
+    def __init__(self, frame="frame", car_id="car_id", left="left", top="top", right="right", bottom="bottom", width="width", height="height"):
+        self.frame = frame
+        self.car_id = car_id
+        self.left = left
+        self.top = top
+        self.right = right
+        self.bottom = bottom
+        self.width = width
+        self.height = height
 
 class Data_Form:
     """
@@ -25,20 +27,24 @@ class Data_Form:
     """
     def __init__(self, flnms: dict):
         self.LEN = 5
-        cols = Cols()
         self.window = deque(maxlen=self.LEN)
         self.last_bytes = 0
         self.flnms = flnms
         for flnm in flnms:
+            labels = flnms[flnm]["labels"]
+            cols = Cols(**labels)
             self._run(flnm, cols)
 
     def _run(self, flnm: str, cols: object):
-        data = pd.read_csv(self.flnms[flnm][0])
+        data = pd.read_csv(self.flnms[flnm]["path"])
         data = data.sort_values(by=cols.frame).reset_index(drop=True)
+        if "right" in self.flnms[flnm]["labels"]:
+            data["width"] = abs(data[cols.right] - data[cols.left])
+            data["height"] = abs(data[cols.bottom] - data[cols.top])
         self.min_y = data[cols.top].min() - 10  # 用来把数据集的y规范到较小的范围
         f_data = open(".\data\data.bin", 'ab+')
         f_index = open(".\data\index.bin", 'ab+')
-        self.scale = self.flnms[flnm][1]
+        self.scale = self.flnms[flnm]["scale"]
         self._init_window()
         for ID, group in data.groupby(data[cols.frame]):
             byte_frame = 0
