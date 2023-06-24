@@ -32,7 +32,7 @@ class Exp_Main(Exp_Basic):
         return model_optim
 
     def _select_criterion(self):
-        criterion = nn.MSELoss()
+        criterion = nn.MSELoss(ignore_index=0)
         return criterion
 
     def _save_model(self, vali_loss, path):
