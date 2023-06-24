@@ -7,4 +7,5 @@ def test_exp():
     bartti.train()
 
 if __name__ == '__main__':
-    test_exp()
+    for i in range(20):
+        test_exp()

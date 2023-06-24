@@ -10,8 +10,8 @@ def params():
 
     parser.add_argument('--is_train', type=bool, default=True, help='if True is train model')
     parser.add_argument('--learning_rate', type=float, default=0.001, help='original leaning rate')
-    parser.add_argument('--train_epochs', type=int, default=3, help='total train epoch')
-    parser.add_argument('--batch_size', type=int, default=1)
+    parser.add_argument('--train_epochs', type=int, default=10, help='total train epoch')
+    parser.add_argument('--batch_size', type=int, default=4)
     parser.add_argument('--drop_last', type=bool, default=True)
     parser.add_argument('--max_seq_len', type=int, default=400, help='all input seq will be compensated as max_seq_len')
 

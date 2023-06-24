@@ -1,8 +1,10 @@
 from train.data_provider import Data_Form
 
 if __name__ == '__main__':
-    flnms = {"test1": ".//data//test1.csv",
-             "test2": ".//data//test2.csv"}
+    # flnm = {key: [path, scale]}
+    # where scale indicates: pixel * scale = meter
+    flnms = {"test1": [".//data//test1.csv", 0.1],
+             "test2": [".//data//test2.csv", 0.1]}
     Data_Form(flnms)
 
     f = open(".//data//index.bin", 'rb')
