@@ -233,15 +233,15 @@ class Noise():
         - _noise_four交换两帧位置
         """
         self.car_num = int(len(x) / 5 - 1)
-        trans_type = self._trans_type()
+        self.trans_type = self._trans_type()
         # print("trans_type", trans_type)
-        if trans_type == 0:
+        if self.trans_type == 0:
             return self._noise_one(x)
-        elif trans_type == 1:
+        elif self.trans_type == 1:
             return self._noise_two(x)
-        elif trans_type == 2:
+        elif self.trans_type == 2:
             return self._noise_three(x)
-        elif trans_type == 3:
+        elif self.trans_type == 3:
             return self._noise_four(x)
 
     def _trans_type(self) -> int:
@@ -286,8 +286,7 @@ class Noise():
         return sec
 
     def _comp_zero(self, enc_x, enc_mark, dec_x, dec_mark, x) -> tuple:
-        rt = np.array(self._comp(enc_x)), np.array(enc_mark), np.array(self._comp(dec_x)), np.array(dec_mark), np.array(self._comp(x))
-        return rt
+        return np.array(self._comp(enc_x)), np.array(enc_mark), np.array(self._comp(dec_x)), np.array(dec_mark), np.array(self._comp(x))
 
     def derve(self, x: typing.List[list]) -> typing.Tuple[list, list, list, list, list]:
         """

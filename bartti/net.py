@@ -19,10 +19,9 @@ class Embedding(nn.Module):
             if i == 0:
                 mk[0, :mks[i], 0] = self._frm_embed[i].item()
                 continue
-            mk[0, sum(mks[:i-1]):sum(mks[:i]), 0] = self._frm_embed[i]
+            mk[0, sum(mks[:i-1]):sum(mks[:i]), 0] = self._frm_embed[i].item()
         # ! 这里需要检查维度是否正确
-        return self._embeding(x.permute(0, 2, 1)).transpose(1, 2) + \
-            self._pos_embed.data[:, :x.shape[1], :] + mk
+        return self._embeding(x.permute(0, 2, 1)).transpose(1, 2) + self._pos_embed.data[:, :x.shape[1], :] + mk
 
 class Bart(nn.Module):
     def __init__(self, config):
@@ -37,9 +36,12 @@ class Bart(nn.Module):
         padding = 1 if torch.__version__ >= '1.5.0' else 2
         self.d_reduction = nn.Conv1d(in_channels=config.d_model, out_channels=config.c_in,
                                    kernel_size=3, padding=padding, padding_mode='circular', bias=False)
+        self.criterion = nn.MSELoss()
 
-    def forward(self, enc_x, enc_mark, dec_x, dec_mark):
+    def forward(self, enc_x, enc_mark, dec_x, dec_mark, gt_x):
         enc_token = self.enc_embeding(enc_x, enc_mark)
         dec_token = self.dec_embeding(dec_x, dec_mark)
         output = self.bart(enc_token.permute(1, 0, 2), dec_token.permute(1, 0, 2)).permute(1, 2, 0)
-        return self.d_reduction(output).permute(0, 2, 1)  # -> batch, seq_len, d_model
+        outputs = self.d_reduction(output).permute(0, 2, 1)  # -> batch, seq_len, d_model
+        loss = self.criterion(outputs, gt_x)
+        return outputs, loss

@@ -4,11 +4,15 @@ import time
 import torch
 import torch.nn as nn
 from torch import optim
+import torch.distributed as dist
 from train.exp_basic import Exp_Basic
 from train.dataset import Dataset_Bart
 from bartti.net import Bart
 from torch.utils.data import DataLoader
 from train.utils import metric, adjust_learning_rate
+# from torch.nn.parallel import DistributedDataParallel as DDP
+
+
 
 class Exp_Main(Exp_Basic):
     def __init__(self, args):
@@ -18,7 +22,9 @@ class Exp_Main(Exp_Basic):
     def _build_model(self):
         model = Bart(self.args).float()
         if self.args.use_multi_gpu and self.args.use_gpu:
-            model = nn.DataParallel(model, device_ids=self.args.device_ids)
+            model = nn.DataParallel(model, device_ids=self.args.device_ids, output_device=0)
+            # dist.init_process_group("gloo")
+            # model = DDP(model.cuda(), device_ids=self.args.device_ids)
         return model
 
     def _get_data(self):
@@ -32,7 +38,7 @@ class Exp_Main(Exp_Basic):
         return model_optim
 
     def _select_criterion(self):
-        criterion = nn.MSELoss(ignore_index=0)
+        criterion = nn.MSELoss()
         return criterion
 
     def _save_model(self, vali_loss, path):
@@ -67,7 +73,7 @@ class Exp_Main(Exp_Basic):
         path = self.args.save_path + 'checkpoint.pth'
 
         model_optim = self._select_optimizer()
-        criterion = self._select_criterion()
+        # criterion = self._select_criterion()
 
         for epoch in range(self.args.train_epochs):
             iter_count = 0
@@ -81,11 +87,11 @@ class Exp_Main(Exp_Basic):
                 model_optim.zero_grad()
                 enc_x = enc_x.float().to(self.device)
                 dec_x = dec_x.float().to(self.device)
+                gt_x = gt_x.float().to(self.device)
                 frm_mark = torch.zeros((1, self.args.max_seq_len, 1)).float().to(self.device)
 
-                outputs = self.model((enc_x, frm_mark), enc_mark, (dec_x, frm_mark), dec_mark)
+                outputs, loss = self.model((enc_x, frm_mark), enc_mark, (dec_x, frm_mark), dec_mark, gt_x)
 
-                loss = criterion(outputs, gt_x.float().to(self.device))
                 train_loss.append(loss.item())
 
                 if (i + 1) % 100 == 0:
@@ -110,7 +116,7 @@ class Exp_Main(Exp_Basic):
             adjust_learning_rate(model_optim, epoch + 1, self.args)
 
         self.model.load_state_dict(torch.load(path))
-
+        # dist.destroy_process_group()
         return self.model
 
     def test(self):
