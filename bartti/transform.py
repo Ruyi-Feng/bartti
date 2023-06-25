@@ -9,7 +9,7 @@ MaskScheme = typing.List[typing.Tuple[int, int]]
 
 
 class Noise():
-    def __init__(self, noise_rate: float = 0.5, del_rate: float = 0.5, msk_rate: float = 0.5, poisson_rate: int = 3, frame_interval: float = 0.03, max_span_len: int = 10, max_seq_len: int = 512) -> None:
+    def __init__(self, noise_rate: float = 0.3, del_rate: float = 0.1, msk_rate: float = 0.2, poisson_rate: int = 3, frame_interval: float = 0.03, max_span_len: int = 5, max_seq_len: int = 512) -> None:
         """
         noise_rate:
         ----------
