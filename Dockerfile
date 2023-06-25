@@ -1,1 +1,0 @@
-FROM yandy0725/pytorch:base
