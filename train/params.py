@@ -3,14 +3,14 @@ import torch
 
 def params():
     parser = argparse.ArgumentParser(description='Non-stationary Transformers for Time Series Forecasting')
-    parser.add_argument('--save_path', type=str, default='./checkpoints/', help='location of model checkpoints')
-    parser.add_argument('--index_path', type=str, default='./data/index.bin')
-    parser.add_argument('--data_path', type=str, default='./data/data.bin')
+    parser.add_argument('--save_path', type=str, default='/output/', help='location of model checkpoints')
+    parser.add_argument('--index_path', type=str, default='/input0/index.bin')
+    parser.add_argument('--data_path', type=str, default='/input0/data.bin')
     parser.add_argument('--interval', type=float, default=0.03)
 
     parser.add_argument('--is_train', type=bool, default=True, help='if True is train model')
     parser.add_argument('--learning_rate', type=float, default=0.01, help='original leaning rate')
-    parser.add_argument('--train_epochs', type=int, default=100, help='total train epoch')
+    parser.add_argument('--train_epochs', type=int, default=10, help='total train epoch')
     parser.add_argument('--batch_size', type=int, default=10, help='batch size')
     parser.add_argument('--drop_last', type=bool, default=True)
     parser.add_argument('--max_seq_len', type=int, default=1024, help='all input seq will be compensated as max_seq_len')
@@ -27,8 +27,6 @@ def params():
     parser.add_argument('--gpu', type=int, default='0', help='gpu')
     parser.add_argument('--use_multi_gpu', action='store_true', help='use multiple gpus', default=True)
     parser.add_argument('--devices', type=str, default='0,1', help='device ids of multile gpus')
-    parser.add_argument('--seed', type=int, default=2023, help='random seed')
-    parser.add_argument('--num_workers', type=int, default=4)
     parser.add_argument('--lradj', default='type1')
     args = parser.parse_args()
     args.use_gpu = (torch.cuda.is_available() and args.use_gpu)
