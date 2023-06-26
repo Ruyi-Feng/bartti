@@ -1,3 +1,4 @@
+from datetime import timedelta
 import numpy as np
 import os
 import time
@@ -21,7 +22,7 @@ class Exp_Main:
         self.device = torch.device('cuda', local_rank)
         self.local_rank = local_rank
         torch.cuda.set_device(local_rank)
-        dist.init_process_group(backend='nccl')
+        dist.init_process_group(backend='nccl', timeout=timedelta(days=1))
         self.model = self._build_model()
 
     def _build_model(self):
