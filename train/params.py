@@ -23,21 +23,21 @@ def params():
 
     parser.add_argument('--activation', type=str, default='gelu', help='activation')
 
-    parser.add_argument('--use_gpu', type=bool, default=True, help='use gpu')
-    parser.add_argument('--gpu', type=int, default='0', help='gpu')
-    parser.add_argument('--use_multi_gpu', action='store_true', help='use multiple gpus', default=True)
-    parser.add_argument('--devices', type=str, default='0,1', help='device ids of multile gpus')
+    # parser.add_argument('--use_gpu', type=bool, default=True, help='use gpu')
+    # parser.add_argument('--gpu', type=int, default='0', help='gpu')
+    # parser.add_argument('--use_multi_gpu', action='store_true', help='use multiple gpus', default=True)
+    # parser.add_argument('--devices', type=str, default='0,1', help='device ids of multile gpus')
     parser.add_argument('--lradj', default='type1')
     args = parser.parse_args()
-    args.use_gpu = (torch.cuda.is_available() and args.use_gpu)
-    if args.use_gpu:
-        if args.use_multi_gpu:
-            args.devices = args.devices.replace(' ', '')
-            device_ids = args.devices.split(',')
-            args.device_ids = [int(id_) for id_ in device_ids]
-            args.gpu = args.device_ids[0]
-        else:
-            torch.cuda.set_device(args.gpu)
+    # args.use_gpu = (torch.cuda.is_available() and args.use_gpu)
+    # if args.use_gpu:
+    #     if args.use_multi_gpu:
+    #         args.devices = args.devices.replace(' ', '')
+    #         device_ids = args.devices.split(',')
+    #         args.device_ids = [int(id_) for id_ in device_ids]
+    #         args.gpu = args.device_ids[0]
+    #     else:
+    #         torch.cuda.set_device(args.gpu)
 
     return args
 

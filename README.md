@@ -16,8 +16,12 @@ Vehicle trajectory prediction preforms an essential basement of several related 
   - _noise_two 选r%的车mask(替换掉) [done]
   - _noise_three直接删掉一整帧 （1/2 改ID） [done]
   - _noise_four交换两帧位置 [done]
-- 有embed要改一下
-- 大数据集制作，需要注意归一化一下车辆出现的位置
-- main
+- 有embed要改一下 [done]
+- 大数据集制作，需要注意归一化一下车辆出现的位置 [done]
+- main [done]
+- Problem fix
+  - 训练集长度超过最大时的截取。
+  - 针对于local环境的滑窗，不用大范围预测
+  - 训练资源
 
 

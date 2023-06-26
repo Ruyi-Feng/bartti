@@ -32,12 +32,13 @@ class Exp_Main:
             model.load_state_dict(torch.load(self.args.save_path + 'checkpoint_last.pth', map_location=torch.device('cpu')))
         return DDP(model, device_ids=[self.local_rank], output_device=self.local_rank, find_unused_parameters=True)
 
-    def _get_data(self):
+    def _get_data(self, split: str='train'):
+        batch_sz = (self.args.batch_size // dist.get_world_size()) if split == 'val' else self.args.batch_size
         data_set = Dataset_Bart(index_path=self.args.index_path, data_path=self.args.data_path, interval=self.args.interval, max_seq_len=self.args.max_seq_len)
         sampler = None
         if self.args.is_train:
             sampler = DistributedSampler(data_set)
-        data_loader = DataLoader(data_set, batch_size=self.args.batch_size, sampler=sampler, drop_last=self.args.drop_last, pin_memory=True)
+        data_loader = DataLoader(data_set, batch_size=batch_sz, sampler=sampler, drop_last=self.args.drop_last, pin_memory=True)
         return data_set, data_loader
 
     def _select_optimizer(self):
@@ -68,7 +69,7 @@ class Exp_Main:
 
     def train(self):
         _, train_loader = self._get_data()
-        vali_data, vali_loader = self._get_data()
+        vali_data, vali_loader = self._get_data('val')
 
         time_now = time.time()
         train_steps = len(train_loader)
