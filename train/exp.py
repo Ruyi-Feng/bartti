@@ -125,22 +125,27 @@ class Exp_Main:
         dist.destroy_process_group()
 
     def test(self):
-        self.model.load_state_dict(torch.load(os.path.join(self.args.save_path, 'checkpoint_best.pth')))
-        test_data, test_loader = self._get_data()
-        self.model.eval()
-        outputs = []
-        trues = []
-        with torch.no_grad():
-            for i, (enc_x, enc_mark, dec_x, dec_mark, gt_x) in enumerate(test_loader):
-                enc_x = enc_x.float().to(self.device)
-                dec_x = dec_x.float().to(self.device)
-                frm_mark = torch.zeros((1, self.args.max_seq_len, 1)).float().to(self.device)
-                outputs, loss = self.model((enc_x, frm_mark), enc_mark, (dec_x, frm_mark), dec_mark, gt_x)
-                output = output.detach().cpu().numpy()
-                outputs.append(output)
-                trues.append(gt_x)
-        outputs = outputs.reshape(-1, outputs.shape[-2], outputs.shape[-1])
-        trues = trues.reshape(-1, trues.shape[-2], trues.shape[-1])
-        mae, mse, rmse, mape, mspe = metric(outputs, trues)
-        print('mse:{}, mae:{}'.format(mse, mae))
+        if dist.get_rank() == 0:
+            test_data, test_loader = self._get_data('val')
+            self.model.eval()
+            outputs = []
+            trues = []
+            with torch.no_grad():
+                for i, (enc_x, enc_mark, dec_x, dec_mark, gt_x) in enumerate(test_loader):
+                    enc_x = enc_x.float().to(self.device)
+                    dec_x = dec_x.float().to(self.device)
+                    frm_mark = torch.zeros((1, self.args.max_seq_len, 1)).float().to(self.device)
+                    output, loss = self.model((enc_x, frm_mark), enc_mark, (dec_x, frm_mark), dec_mark, gt_x)
+                    output = output.detach().cpu().numpy()
+                    gt_x = gt_x.detach().cpu().numpy()
+                    outputs.append(output)
+                    trues.append(gt_x)
+            outputs = np.array(outputs)
+            # print(output.shape)
+            outputs = outputs.reshape(-1, outputs.shape[-2], outputs.shape[-1])
+            trues = np.array(trues)
+            trues = trues.reshape(-1, trues.shape[-2], trues.shape[-1])
+            mae, mse, rmse, mape, mspe = metric(outputs, trues)
+            print('mse:{}, mae:{}'.format(mse, mae))
+            return trues, outputs
 
