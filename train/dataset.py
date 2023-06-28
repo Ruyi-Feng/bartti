@@ -6,11 +6,13 @@ import typing
 class Dataset_Bart(Dataset):
     def __init__(self, index_path: str=".\\data\\index.bin", data_path:str=".\\data\\data.bin", interval:float=0.03, max_seq_len: int=512):
         self.trans = Noise(max_seq_len=max_seq_len)
+        self.max_car_num = int(max_seq_len / 5) - 1
         self.train_idx = []
         self.dataset_length = 0
         self.IN = interval
         self.idx_path = index_path
         self.data_path = data_path
+        self.REGION = 1  # 用来暴力归一化
         self.f_data = open(self.data_path, 'rb')
         for line in open(self.idx_path, 'rb'):
             line = line.decode().split()[0].split(',')
@@ -42,6 +44,8 @@ class Dataset_Bart(Dataset):
 
     def _intersection(self, car_dict: dict, intersection=None) -> set:
         for k in car_dict:
+            if len(car_dict) >= self.max_car_num - 1:
+                break
             if intersection is None:
                 intersection = car_dict[k]
             else:
@@ -67,7 +71,7 @@ class Dataset_Bart(Dataset):
         info = self.f_data.read(tail - head)
         x = self._trans_to_array(info)
         enc_x, enc_mark, dec_x, dec_mark, gt_x = self.trans.derve(x)  # 这个是用来随机挖空的
-        return enc_x, enc_mark, dec_x, dec_mark, gt_x
+        return enc_x / self.REGION, enc_mark, dec_x / self.REGION, dec_mark, gt_x / self.REGION
 
     def __len__(self):
         return self.dataset_length

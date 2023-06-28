@@ -27,6 +27,7 @@ class Data_Form:
     """
     def __init__(self, flnms: dict):
         self.LEN = 5
+        self.SEC_LEN = 100
         self.window = deque(maxlen=self.LEN)
         self.last_bytes = 0
         self.flnms = flnms
@@ -37,7 +38,7 @@ class Data_Form:
 
     def _run(self, flnm: str, cols: object):
         data = pd.read_csv(self.flnms[flnm]["path"])
-        data = data.sort_values(by=cols.frame).reset_index(drop=True)
+        data = data.sort_values(by=[cols.frame, cols.car_id]).reset_index(drop=True)
         if "right" in self.flnms[flnm]["labels"]:
             data["width"] = abs(data[cols.right] - data[cols.left])
             data["height"] = abs(data[cols.bottom] - data[cols.top])
@@ -46,18 +47,27 @@ class Data_Form:
         f_index = open(".\data\index.bin", 'ab+')
         self.scale = self.flnms[flnm]["scale"]
         self._init_window()
-        for ID, group in data.groupby(data[cols.frame]):
-            byte_frame = 0
-            for _, row in group.iterrows():
-                id, cx, cy, w, h = self._stand_boxes(row, cols)
-                row_s = "{:.2f},{:.2f},{:.2f},{:.2f},{:.2f},{:.2f}\n".format(ID, id, cx, cy, w, h)
-                row_s = row_s.encode()
-                write_len = f_data.write(row_s)
-                byte_frame += write_len
-            notable, head, tail = self._update_window(byte_frame)
-            if notable:
-                idx_s = "{:s},{:d},{:d}\n".format(self._get_only_id(flnm, ID), head, tail).encode()
-                f_index.write(idx_s)
+        data_s = self._split_data(data, cols)
+        for sp, data in data_s.groupby(data_s["split"]):
+            for ID, group in data.groupby(data[cols.frame]):
+                byte_frame = 0
+                for _, row in group.iterrows():
+                    id, cx, cy, w, h = self._stand_boxes(row, cols)
+                    row_s = "{:.2f},{:.2f},{:.2f},{:.2f},{:.2f},{:.2f}\n".format(ID, id, cx, cy, w, h)
+                    row_s = row_s.encode()
+                    write_len = f_data.write(row_s)
+                    byte_frame += write_len
+                notable, head, tail = self._update_window(byte_frame)
+                if notable:
+                    idx_s = "{:s},{:d},{:d}\n".format(self._get_only_id(flnm, ID, sp), head, tail).encode()
+                    f_index.write(idx_s)
+
+    def _split_data(self, data, cols):
+        """
+        把数据分成小片区的
+        """
+        data["split"] = data[cols.left] // self.SEC_LEN
+        return data
 
     def _stand_boxes(self, row, cols):
         id = row[cols.car_id]
@@ -73,8 +83,8 @@ class Data_Form:
         self.last_bytes += self._sum_window()
         self.window.clear()
 
-    def _get_only_id(self, flnm, ID):
-        return flnm + str(ID)
+    def _get_only_id(self, flnm, ID, sp):
+        return flnm + str(ID) + str(sp)
 
     def _sum_window(self):
         added = 0
