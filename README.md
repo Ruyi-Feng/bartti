@@ -20,8 +20,10 @@ Vehicle trajectory prediction preforms an essential basement of several related 
 - 大数据集制作，需要注意归一化一下车辆出现的位置 [done]
 - main [done]
 - Problem fix
-  - 训练集长度超过最大时的截取。
-  - 针对于local环境的滑窗，不用大范围预测
+  - 训练集长度超过最大时的截取。[done]
+  - 针对于local环境的滑窗，不用大范围预测[done]
   - 训练资源
+  - 调节训练learning rate （先升后降）[done]
+  - decoder 的 mask 增加[done]
 
 
