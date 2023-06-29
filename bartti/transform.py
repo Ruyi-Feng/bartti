@@ -252,7 +252,8 @@ class Noise():
 
     def _add_head_mark(self, x: list) -> list:
         x_c = copy.deepcopy(x)
-        x_c.pop()
+        if len(x_c) > 5:
+            x_c.pop()
         return [self.head_mark] + x_c
 
     def _if_noise(self) -> bool:
