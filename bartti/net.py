@@ -38,10 +38,14 @@ class Bart(nn.Module):
                                    kernel_size=3, padding=padding, padding_mode='circular', bias=False)
         self.criterion = nn.MSELoss()
 
-    def forward(self, enc_x, enc_mark, dec_x, dec_mark, gt_x):
+    def forward(self, enc_x, enc_mark, dec_x, dec_mark, gt_x, infer=False):
         enc_token = self.enc_embeding(enc_x, enc_mark)
         dec_token = self.dec_embeding(dec_x, dec_mark)
-        output = self.bart(enc_token.permute(1, 0, 2), dec_token.permute(1, 0, 2)).permute(1, 2, 0)
+        tgt_mask = None
+        if not infer:
+            tgt_mask = nn.Transformer.generate_square_subsequent_mask(
+                dec_token.size(1)).to(enc_token.device)
+        output = self.bart(enc_token.permute(1, 0, 2), dec_token.permute(1, 0, 2), tgt_mask=tgt_mask).permute(1, 2, 0)
         outputs = self.d_reduction(output).permute(0, 2, 1)  # -> batch, seq_len, d_model
         loss = self.criterion(outputs, gt_x)
         return outputs, loss
