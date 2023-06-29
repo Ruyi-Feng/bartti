@@ -19,6 +19,7 @@ class Exp_Main:
     def __init__(self, args, local_rank=-1):
         self.args = args
         self.best_score = None
+        self.WARMUP = 1000
         self.device = torch.device('cuda', local_rank)
         self.local_rank = local_rank
         torch.cuda.set_device(local_rank)
@@ -37,14 +38,20 @@ class Exp_Main:
         batch_sz = (self.args.batch_size // dist.get_world_size()) if split == 'val' else self.args.batch_size
         data_set = Dataset_Bart(index_path=self.args.index_path, data_path=self.args.data_path, interval=self.args.interval, max_seq_len=self.args.max_seq_len)
         sampler = None
+        drop_last = False
         if self.args.is_train:
             sampler = DistributedSampler(data_set)
-        data_loader = DataLoader(data_set, batch_size=batch_sz, sampler=sampler, drop_last=self.args.drop_last, pin_memory=True)
+            drop_last=self.args.drop_last
+        data_loader = DataLoader(data_set, batch_size=batch_sz, sampler=sampler, drop_last=drop_last, pin_memory=True)
         return data_set, data_loader
 
     def _select_optimizer(self):
         model_optim = optim.Adam(self.model.parameters(), lr=self.args.learning_rate)
-        scheduler = optim.lr_scheduler.ExponentialLR(model_optim, gamma=0.9)
+        warmup = self.WARMUP
+        s1 = optim.lr_scheduler.LinearLR(model_optim, start_factor=0.01, total_iters=warmup)
+        s2 = optim.lr_scheduler.LinearLR(model_optim, start_factor=1.0, end_factor=0.001, total_iters=warmup * 25)
+        scheduler = optim.lr_scheduler.SequentialLR(model_optim, schedulers=[s1, s2], milestones=[warmup * 50])
+        # scheduler = optim.lr_scheduler.ExponentialLR(model_optim, gamma=0.9)
         return model_optim, scheduler
 
     def _save_model(self, vali_loss, path):
@@ -138,13 +145,12 @@ class Exp_Main:
                     enc_x = enc_x.float().to(self.device)
                     dec_x = dec_x.float().to(self.device)
                     frm_mark = torch.zeros((1, self.args.max_seq_len, 1)).float().to(self.device)
-                    output, loss = self.model((enc_x, frm_mark), enc_mark, (dec_x, frm_mark), dec_mark, gt_x)
+                    output, loss = self.model((enc_x, frm_mark), enc_mark, (dec_x, frm_mark), dec_mark, gt_x, infer=True)
                     output = output.detach().cpu().numpy()
                     gt_x = gt_x.detach().cpu().numpy()
                     outputs.append(output)
                     trues.append(gt_x)
             outputs = np.array(outputs)
-            # print(output.shape)
             outputs = outputs.reshape(-1, outputs.shape[-2], outputs.shape[-1])
             trues = np.array(trues)
             trues = trues.reshape(-1, trues.shape[-2], trues.shape[-1])
