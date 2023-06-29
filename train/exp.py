@@ -44,7 +44,8 @@ class Exp_Main:
 
     def _select_optimizer(self):
         model_optim = optim.Adam(self.model.parameters(), lr=self.args.learning_rate)
-        return model_optim
+        scheduler = optim.lr_scheduler.ExponentialLR(model_optim, gamma=0.9)
+        return model_optim, scheduler
 
     def _save_model(self, vali_loss, path):
         if self.best_score is None:
@@ -76,7 +77,7 @@ class Exp_Main:
         train_steps = len(train_loader)
         path = self.args.save_path + 'checkpoint_'
 
-        model_optim = self._select_optimizer()
+        model_optim, scheduler = self._select_optimizer()
 
         for epoch in range(self.args.train_epochs):
             train_loader.sampler.set_epoch(epoch)
@@ -108,6 +109,8 @@ class Exp_Main:
 
                 loss.backward()
                 model_optim.step()
+                if (i + 1) % 100 == 0:
+                    scheduler.step()
 
             if dist.get_rank() == 0:
                 print("Epoch: {} cost time: {}".format(epoch + 1, time.time() - epoch_time))
@@ -118,7 +121,7 @@ class Exp_Main:
 
                 # saving model
                 self._save_model(vali_loss, path + 'best.pth')
-                adjust_learning_rate(model_optim, epoch + 1, self.args)
+                # adjust_learning_rate(model_optim, epoch + 1, self.args)
             dist.barrier()
         if dist.get_rank() == 0:
             torch.save(self.model.module.state_dict(), path + 'last.pth')

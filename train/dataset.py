@@ -12,7 +12,7 @@ class Dataset_Bart(Dataset):
         self.IN = interval
         self.idx_path = index_path
         self.data_path = data_path
-        self.REGION = 1  # 用来暴力归一化
+        self.REGION = 100  # 用来暴力归一化
         self.f_data = open(self.data_path, 'rb')
         for line in open(self.idx_path, 'rb'):
             line = line.decode().split()[0].split(',')
@@ -44,12 +44,12 @@ class Dataset_Bart(Dataset):
 
     def _intersection(self, car_dict: dict, intersection=None) -> set:
         for k in car_dict:
-            if len(car_dict) >= self.max_car_num - 1:
-                break
             if intersection is None:
                 intersection = car_dict[k]
             else:
                 intersection = intersection.intersection(car_dict[k])
+            if len(intersection) >= self.max_car_num - 1:
+                break
         intersection.add(self.IN)
         return intersection
 

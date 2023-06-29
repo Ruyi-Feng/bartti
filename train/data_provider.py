@@ -27,7 +27,7 @@ class Data_Form:
     """
     def __init__(self, flnms: dict):
         self.LEN = 5
-        self.SEC_LEN = 100
+        self.SEC_LEN = 100.0   # _<m>
         self.window = deque(maxlen=self.LEN)
         self.last_bytes = 0
         self.flnms = flnms
@@ -38,7 +38,6 @@ class Data_Form:
 
     def _run(self, flnm: str, cols: object):
         data = pd.read_csv(self.flnms[flnm]["path"])
-        data = data.sort_values(by=[cols.frame, cols.car_id]).reset_index(drop=True)
         if "right" in self.flnms[flnm]["labels"]:
             data["width"] = abs(data[cols.right] - data[cols.left])
             data["height"] = abs(data[cols.bottom] - data[cols.top])
@@ -48,6 +47,7 @@ class Data_Form:
         self.scale = self.flnms[flnm]["scale"]
         self._init_window()
         data_s = self._split_data(data, cols)
+        data_s = data_s.sort_values(by=["split", cols.frame, cols.car_id]).reset_index(drop=True)
         for sp, data in data_s.groupby(data_s["split"]):
             for ID, group in data.groupby(data[cols.frame]):
                 byte_frame = 0
@@ -66,7 +66,7 @@ class Data_Form:
         """
         把数据分成小片区的
         """
-        data["split"] = data[cols.left] // self.SEC_LEN
+        data["split"] = data[cols.left] // (self.SEC_LEN / self.scale)
         return data
 
     def _stand_boxes(self, row, cols):
