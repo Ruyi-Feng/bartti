@@ -27,7 +27,7 @@ class Data_Form:
     """
     def __init__(self, flnms: dict):
         self.LEN = 5
-        self.SEC_LEN = 100.0   # _<m>
+        self.SEC_LEN = 500.0   # _<m>
         self.window = deque(maxlen=self.LEN)
         self.last_bytes = 0
         self.flnms = flnms
