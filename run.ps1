@@ -1,0 +1,1 @@
+docker run --gpus all --rm -v $PWD/:/opt/bartti -it ns_transformer bash

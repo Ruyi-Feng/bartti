@@ -48,10 +48,13 @@ class Dataset_Bart(Dataset):
                 intersection = car_dict[k]
             else:
                 intersection = intersection.intersection(car_dict[k])
-            if len(intersection) >= self.max_car_num - 1:
+        new_inter = set()
+        for k in intersection:
+            new_inter.add(k)
+            if len(new_inter) >= self.max_car_num - 1:
                 break
-        intersection.add(self.IN)
-        return intersection
+        new_inter.add(self.IN)
+        return new_inter
 
     def _select_continue_car(self, car_set: set, data_list: list) -> list:
         new_data = []
