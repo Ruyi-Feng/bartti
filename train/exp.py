@@ -35,7 +35,8 @@ class Exp_Main:
         return DDP(model, device_ids=[self.local_rank], output_device=self.local_rank, find_unused_parameters=True)
 
     def _get_data(self, split: str='train'):
-        batch_sz = (self.args.batch_size // dist.get_world_size()) if split == 'val' else self.args.batch_size
+        # batch_sz = (self.args.batch_size // dist.get_world_size()) if split == 'val' else self.args.batch_size
+        batch_sz = self.args.batch_size
         data_set = Dataset_Bart(index_path=self.args.index_path, data_path=self.args.data_path, interval=self.args.interval, max_seq_len=self.args.max_seq_len)
         sampler = None
         drop_last = False
@@ -48,9 +49,9 @@ class Exp_Main:
     def _select_optimizer(self):
         model_optim = optim.Adam(self.model.parameters(), lr=self.args.learning_rate)
         warmup = self.WARMUP
-        s1 = optim.lr_scheduler.LinearLR(model_optim, start_factor=0.01, total_iters=warmup)
-        s2 = optim.lr_scheduler.LinearLR(model_optim, start_factor=1.0, end_factor=0.001, total_iters=warmup * 25)
-        scheduler = optim.lr_scheduler.SequentialLR(model_optim, schedulers=[s1, s2], milestones=[warmup * 50])
+        s1 = optim.lr_scheduler.LinearLR(model_optim, start_factor=0.001, total_iters=warmup)
+        s2 = optim.lr_scheduler.LinearLR(model_optim, start_factor=1.0, end_factor=0.0001, total_iters=warmup * 15)
+        scheduler = optim.lr_scheduler.SequentialLR(model_optim, schedulers=[s1, s2], milestones=[warmup * 40])
         # scheduler = optim.lr_scheduler.ExponentialLR(model_optim, gamma=0.9)
         return model_optim, scheduler
 
@@ -110,7 +111,7 @@ class Exp_Main:
                     print("\titers: {0}, epoch: {1} | loss: {2:.7f}".format(i + 1, epoch + 1, loss.item()))
                     speed = (time.time() - time_now) / iter_count
                     left_time = speed * ((self.args.train_epochs - epoch) * train_steps - i)
-                    print('\tspeed: {:.4f}s/iter; left time: {:.4f}s'.format(speed, left_time))
+                    # print('\tspeed: {:.4f}s/iter; left time: {:.4f}s'.format(speed, left_time))
                     iter_count = 0
                     time_now = time.time()
 
@@ -120,7 +121,7 @@ class Exp_Main:
                     scheduler.step()
 
             if dist.get_rank() == 0:
-                print("Epoch: {} cost time: {}".format(epoch + 1, time.time() - epoch_time))
+                # print("Epoch: {} cost time: {}".format(epoch + 1, time.time() - epoch_time))
                 train_loss = np.average(train_loss)
                 vali_loss = self.vali(vali_data, vali_loader)
                 print("Epoch: {0}, Steps: {1} | Train Loss: {2:.7f} Vali Loss: {3:.7f}".format(
