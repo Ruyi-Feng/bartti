@@ -1,5 +1,5 @@
 from torch.utils.data import Dataset
-from bartti.transform import Noise
+from bartti.noise import Noise
 import typing
 
 
@@ -12,17 +12,11 @@ class Dataset_Bart(Dataset):
         self.IN = interval
         self.idx_path = index_path
         self.data_path = data_path
-        self.REGION = 100  # 用来暴力归一化
         self.f_data = open(self.data_path, 'rb')
         for line in open(self.idx_path, 'rb'):
             line = line.decode().split()[0].split(',')
             self.train_idx.append([line[0], int(line[1]), int(line[2])])
             self.dataset_length += 1
-
-    def _update(self, data_list: list, car_dict: dict, item: float) -> typing.Tuple[list, dict]:
-        data_list.append([self.IN, self.IN, self.IN, self.IN, self.IN])
-        car_dict.setdefault(item, set())  # {frame: set()}
-        return data_list, car_dict
 
     def _form_frames(self, info: str) -> typing.Tuple[list, dict]:
         data_list = []
@@ -34,11 +28,10 @@ class Dataset_Bart(Dataset):
             for i in range(len(line)):
                 item = float(line[i])
                 if (i == 0) and (item not in car_dict):
-                    data_list, car_dict = self._update(data_list, car_dict, item)
+                    car_dict.setdefault(item, set())  # {frame: set()}
                 if i == 1:
                     car_dict[float(line[0])].add(item)
-                if i != 0:
-                    line_data.append(float(item))
+                line_data.append(float(item))
             data_list.append(line_data)
         return data_list, car_dict
 
@@ -53,7 +46,6 @@ class Dataset_Bart(Dataset):
             new_inter.add(k)
             if len(new_inter) >= self.max_car_num - 1:
                 break
-        new_inter.add(self.IN)
         return new_inter
 
     def _select_continue_car(self, car_set: set, data_list: list) -> list:
@@ -69,12 +61,15 @@ class Dataset_Bart(Dataset):
         return self._select_continue_car(continue_car, data_list)
 
     def __getitem__(self, index: int):
+        """
+        return:
+        enc_x, enc_mark, enc_car, dec_x, dec_mark, enc_car, gt_x
+        """
         head, tail = self.train_idx[index][1], self.train_idx[index][2]
         self.f_data.seek(head)
         info = self.f_data.read(tail - head)
-        x = self._trans_to_array(info)
-        enc_x, enc_mark, dec_x, dec_mark, gt_x = self.trans.derve(x)  # 这个是用来随机挖空的
-        return enc_x / self.REGION, enc_mark, dec_x / self.REGION, dec_mark, gt_x / self.REGION
+        x = self._trans_to_array(info)  # frame, id, x, y, w, h
+        return self.trans.derve(x)  # 这个是用来随机挖空的
 
     def __len__(self):
         return self.dataset_length

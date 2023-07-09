@@ -67,11 +67,10 @@ class Exp_Main:
         total_loss = []
         self.model.eval()
         with torch.no_grad():
-            for i, (enc_x, enc_mark, dec_x, dec_mark, gt_x) in enumerate(vali_loader):
+            for i, (enc_x, dec_x, gt_x) in enumerate(vali_loader):
                 enc_x = enc_x.float().to(self.device)
                 dec_x = dec_x.float().to(self.device)
-                frm_mark = torch.zeros((1, self.args.max_seq_len, 1)).float().to(self.device)
-                outputs, loss = self.model((enc_x, frm_mark), enc_mark, (dec_x, frm_mark), dec_mark, gt_x)
+                outputs, loss = self.model(enc_x, dec_x, gt_x)
                 total_loss.append(loss.item())
         total_loss = np.average(total_loss)
         self.model.train()
@@ -95,16 +94,14 @@ class Exp_Main:
             self.model.train()
             epoch_time = time.time()
 
-            for i, (enc_x, enc_mark, dec_x, dec_mark, gt_x) in enumerate(train_loader):
+            for i, (enc_x, dec_x, gt_x) in enumerate(train_loader):
                 iter_count += 1
                 model_optim.zero_grad()
                 enc_x = enc_x.float().to(self.device)
                 dec_x = dec_x.float().to(self.device)
                 gt_x = gt_x.float().to(self.device)
-                frm_mark = torch.zeros((1, self.args.max_seq_len, 1)).float().to(self.device)
 
-                _, loss = self.model((enc_x, frm_mark), enc_mark, (dec_x, frm_mark), dec_mark, gt_x)
-
+                _, loss = self.model(enc_x, dec_x, gt_x)
                 train_loss.append(loss.item())
 
                 if (i + 1) % 100 == 0:
@@ -142,11 +139,10 @@ class Exp_Main:
             outputs = []
             trues = []
             with torch.no_grad():
-                for i, (enc_x, enc_mark, dec_x, dec_mark, gt_x) in enumerate(test_loader):
+                for i, (enc_x, dec_x, gt_x) in enumerate(test_loader):
                     enc_x = enc_x.float().to(self.device)
                     dec_x = dec_x.float().to(self.device)
-                    frm_mark = torch.zeros((1, self.args.max_seq_len, 1)).float().to(self.device)
-                    output, loss = self.model((enc_x, frm_mark), enc_mark, (dec_x, frm_mark), dec_mark, gt_x, infer=True)
+                    output, loss = self.model(enc_x, dec_x, gt_x, infer=True)
                     output = output.detach().cpu().numpy()
                     gt_x = gt_x.detach().cpu().numpy()
                     outputs.append(output)
