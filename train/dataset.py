@@ -51,7 +51,7 @@ class Dataset_Bart(Dataset):
     def _select_continue_car(self, car_set: set, data_list: list) -> list:
         new_data = []
         for line in data_list:
-            if line[0] in car_set:
+            if line[1] in car_set:
                 new_data.append(line)
         return new_data
 
