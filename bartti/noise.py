@@ -28,7 +28,7 @@ class Noise():
         when add noise by randomly mask vehicles of one frame,
         msk_rate percent of vehicles will be masked in one frame.
         """
-        self.MAX_CAR_NUM = 40
+        self.MAX_CAR_NUM = 80
         self.LONG_SCALE = 300
         self.LATI_SCALE = 100
         self.SIZE_SCALE = 20
@@ -40,7 +40,7 @@ class Noise():
         self.max_seq_len = max_seq_len
         self._poisson_dist = self._build_poisson_dist()
         # self.head_mark = [15.0, 150.0, 150.0, 150.0, 15.0, 15.0]   # 此值存疑
-        self._mask_token = [10.0, 63.0, 1.0, 1.0, 1.0, 1.0]
+        self._mask_token = [10.0, 120.0, 1.0, 1.0, 1.0, 1.0]
         self.replen_mark = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
     def _noise_one(self, x):
@@ -87,7 +87,7 @@ class Noise():
         for line in x:
             cur_frame = line[0]
             if cur_frame != del_frame:
-                n_x.append([line[0]] + [line[1] + float(change_ID and (cur_frame > del_frame)) * ID_base] + line[2:])
+                n_x.append([line[0]] + [(line[1] + float(change_ID and (cur_frame > del_frame)) * ID_base)%self.MAX_CAR_NUM] + line[2:])
         return n_x
 
     def _noise_four(self, x):
@@ -255,18 +255,21 @@ class Noise():
         return random.random() < self.noise_rate
 
     def _stand(self, sec):
+        if len(sec) < 1:
+            return sec
         sec = np.array(sec)
         sec[:, 0] = sec[:, 0] - min(sec[:, 0]) + 1
-        print("sec", sec)
-        print("min sec", min(sec[:, 0]))
-        sec[:, 1] = sec[:, 1] % self.MAX_CAR_NUM
+        # print("sec", sec)
+        # print("min sec", min(sec[:, 0]))
+        sec[:, 1] = np.mod(sec[:, 1], self.MAX_CAR_NUM)+ 1
         sec[:, 2] = sec[:, 2] / self.LONG_SCALE
         sec[:, 3] = sec[:, 3] / self.LATI_SCALE
         sec[:, 4] = sec[:, 4] / self.SIZE_SCALE
         sec[:, 5] = sec[:, 5] / self.SIZE_SCALE
-        return sec
+        return sec.tolist()
 
     def _comp(self, sec):
+        sec = np.array(sec)
         while len(sec) < self.max_seq_len:
             sec = np.row_stack((sec, self.replen_mark))
         return sec
@@ -291,6 +294,8 @@ class Noise():
         x = self._pre_process(x)
         dec_x = copy.deepcopy(x)
         x_copy = copy.deepcopy(x)
+        if len(x) < 1:
+            return x_copy, dec_x, x
         if self._if_noise():
             enc_x = self._add_noise(x_copy)
         else:

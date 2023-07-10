@@ -20,18 +20,18 @@ class Embedding(nn.Module):
         x = x_group[:, :, 2:]
         f = x_group[:, :, 0]
         c = x_group[:, :, 1]
-        print("car", c.shape)
-        print("c_max", c.max())
+        # print("c_max", c.max())
+        # print("f_max", f.max())
+        # print("car", c.shape)
         c_n = self._car_embed(c.int())
-        print("car_emb", c_n.shape)
-        print("frm", f.shape)
-        print("f_max", f.max())
+        # print("car_emb", c_n.shape)
+        # print("frm", f.shape)
         f_n = self._frm_embed(f.int())
-        print("frm_emb", f_n.shape)
-        print("token", x.shape)
+        # print("frm_emb", f_n.shape)
+        # print("token", x.shape)
         t_n = self._token_embed(x.permute(0, 2, 1)).transpose(1, 2)
-        print("token_emb", t_n.shape)
-        return t_n + f_n+ c_n
+        # print("token_emb", t_n.shape)
+        return t_n + f_n + c_n
 
 class Bart(nn.Module):
     def __init__(self, config):
