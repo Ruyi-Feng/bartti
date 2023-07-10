@@ -33,6 +33,7 @@ if __name__ == '__main__':
              "test13": {"path": "H://CitySim//ExpresswayA//Expressway A (Weaving Segment)//Trajectories//ExpresswayA-01.csv", "scale": 0.056, "labels": citysim_label},
              "test14": {"path": "H://CitySim//ExpresswayA//Expressway A (Weaving Segment)//Trajectories//ExpresswayA-02.csv", "scale": 0.056, "labels": citysim_label},
              "test15": {"path": "H://CitySim//ExpresswayA//Expressway A (Weaving Segment)//Trajectories//ExpresswayA-03.csv", "scale": 0.056, "labels": citysim_label},
+             "test25": {"path": "H://CitySim//ExpresswayA//Expressway A (Weaving Segment)//Trajectories//ExpresswayA-04.csv", "scale": 0.056, "labels": citysim_label},
              "test16": {"path": "H://CitySim//ExpresswayA//Expressway A (Weaving Segment)//Trajectories//ExpresswayA-06.csv", "scale": 0.056, "labels": citysim_label},
              "test17": {"path": "H://CitySim//ExpresswayA//Expressway A (Weaving Segment)//Trajectories//ExpresswayA-07.csv", "scale": 0.056, "labels": citysim_label},
              "test18": {"path": "H://CitySim//ExpresswayA//Expressway A (Weaving Segment)//Trajectories//ExpresswayA-08.csv", "scale": 0.056, "labels": citysim_label},
@@ -41,6 +42,16 @@ if __name__ == '__main__':
              "test21": {"path": "H://CitySim//ExpresswayA//Expressway A (Weaving Segment)//Trajectories//ExpresswayA-22.csv", "scale": 0.056, "labels": citysim_label},
              "test22": {"path": "H://CitySim//ExpresswayA//Expressway A (Weaving Segment)//Trajectories//ExpresswayA-23.csv", "scale": 0.056, "labels": citysim_label},
              "test23": {"path": "H://CitySim//ExpresswayA//Expressway A (Weaving Segment)//Trajectories//ExpresswayA-24.csv", "scale": 0.056, "labels": citysim_label},
-             "test24": {"path": "H://CitySim//ExpresswayA//Expressway A (Weaving Segment)//Trajectories//ExpresswayA-25.csv", "scale": 0.056, "labels": citysim_label},}
+             "test24": {"path": "H://CitySim//ExpresswayA//Expressway A (Weaving Segment)//Trajectories//ExpresswayA-25.csv", "scale": 0.056, "labels": citysim_label},
+             "test26": {"path": "H://CitySim//ExpresswayA//Expressway A (Weaving Segment)//Trajectories//ExpresswayA-12.csv", "scale": 0.056, "labels": citysim_label},
+             "test27": {"path": "H://CitySim//ExpresswayA//Expressway A (Weaving Segment)//Trajectories//ExpresswayA-13.csv", "scale": 0.056, "labels": citysim_label},
+             "test28": {"path": "H://CitySim//ExpresswayA//Expressway A (Weaving Segment)//Trajectories//ExpresswayA-14.csv", "scale": 0.056, "labels": citysim_label},
+             "test29": {"path": "H://CitySim//ExpresswayA//Expressway A (Weaving Segment)//Trajectories//ExpresswayA-17.csv", "scale": 0.056, "labels": citysim_label},
+             "test30": {"path": "H://CitySim//ExpresswayA//Expressway A (Weaving Segment)//Trajectories//ExpresswayA-19.csv", "scale": 0.056, "labels": citysim_label},
+             "test31": {"path": "H://CitySim//ExpresswayA//Expressway A (Weaving Segment)//Trajectories//ExpresswayA-26.csv", "scale": 0.056, "labels": citysim_label},
+             "test32": {"path": "H://CitySim//ExpresswayA//Expressway A (Weaving Segment)//Trajectories//ExpresswayA-27.csv", "scale": 0.056, "labels": citysim_label},
+             "test33": {"path": "H://CitySim//ExpresswayA//Expressway A (Weaving Segment)//Trajectories//ExpresswayA-28.csv", "scale": 0.056, "labels": citysim_label},
+             "test34": {"path": "H://CitySim//ExpresswayA//Expressway A (Weaving Segment)//Trajectories//ExpresswayA-29.csv", "scale": 0.056, "labels": citysim_label},
+             }
 
     generate_data(flnms)

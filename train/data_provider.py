@@ -45,10 +45,10 @@ class Data_Form:
         f_data = open(".\data\data.bin", 'ab+')
         f_index = open(".\data\index.bin", 'ab+')
         self.scale = self.flnms[flnm]["scale"]
-        self._init_window()
         data_s = self._split_data(data, cols)
         data_s = data_s.sort_values(by=["split", cols.frame, cols.car_id]).reset_index(drop=True)
         for sp, data in data_s.groupby(data_s["split"]):
+            self._init_window()
             for ID, group in data.groupby(data[cols.frame]):
                 byte_frame = 0
                 for _, row in group.iterrows():
