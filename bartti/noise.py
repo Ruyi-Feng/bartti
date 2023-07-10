@@ -39,8 +39,8 @@ class Noise():
         self._max_span_len = max_span_len
         self.max_seq_len = max_seq_len
         self._poisson_dist = self._build_poisson_dist()
-        self.head_mark = [15.0, 150.0, 150.0, 150.0, 15.0, 15.0]   # 此值存疑
-        self._mask_token = [10.0, 128.0, 128.0, 128.0, 20.0, 20.0]
+        # self.head_mark = [15.0, 150.0, 150.0, 150.0, 15.0, 15.0]   # 此值存疑
+        self._mask_token = [10.0, 63.0, 1.0, 1.0, 1.0, 1.0]
         self.replen_mark = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
     def _noise_one(self, x):
@@ -80,7 +80,7 @@ class Noise():
     def _noise_three(self, x):
         """_noise_three直接删掉一整帧 (1/2 改ID)"""
         cur_frame = -1
-        del_frame = random.randint(1, 4)
+        del_frame = random.randint(2, 5)
         change_ID = self._randoms_half()
         n_x = []
         ID_base = self.car_num + random.randint(0, 20)
@@ -93,7 +93,7 @@ class Noise():
     def _noise_four(self, x):
         """_noise_four交换两帧位置"""
         cur_frame = -1
-        ids = random.sample(range(1, 4), 2)
+        ids = random.sample(range(2, 5), 2)
         min_id, max_id = sorted(ids)
         pre_frames = []
         inter_frames = []
@@ -245,6 +245,7 @@ class Noise():
         return random.random() < 0.5
 
     def _add_head_mark(self, x: list) -> list:
+        # 暂未启用 headmark
         x_c = copy.deepcopy(x)
         if len(x_c) > 0:
             x_c.pop()
@@ -270,12 +271,11 @@ class Noise():
             sec = np.row_stack((sec, self.replen_mark))
         return sec
 
-    def _proc(self, sec):
-        sec = self._stand(sec)
-        return self._comp(sec)
-
     def _post_process(self, enc_x, dec_x, x) -> tuple:
-        return self._proc(enc_x), self._proc(dec_x), self._proc(x)
+        return self._comp(enc_x), self._comp(dec_x), self._comp(x)
+
+    def _pre_process(self, sec):
+        return self._stand(sec)
 
     def derve(self, x: typing.List[list]) -> typing.Tuple[list, list, list]:
         """
@@ -288,10 +288,11 @@ class Noise():
 
         enc_mark means how many lines in each frames in enc_x
         """
+        x = self._pre_process(x)
+        dec_x = copy.deepcopy(x)
         x_copy = copy.deepcopy(x)
-        dec_x = self._add_head_mark(x_copy)
         if self._if_noise():
             enc_x = self._add_noise(x_copy)
         else:
-            enc_x = copy.deepcopy(x)
+            enc_x = x_copy
         return self._post_process(enc_x, dec_x, x)
