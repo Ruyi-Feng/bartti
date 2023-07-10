@@ -294,8 +294,6 @@ class Noise():
         x = self._pre_process(x)
         dec_x = copy.deepcopy(x)
         x_copy = copy.deepcopy(x)
-        if len(x) < 1:
-            return x_copy, dec_x, x
         if self._if_noise():
             enc_x = self._add_noise(x_copy)
         else:

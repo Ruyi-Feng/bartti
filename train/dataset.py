@@ -27,11 +27,11 @@ class Dataset_Bart(Dataset):
             line_data = []
             for i in range(len(line)):
                 item = float(line[i])
-                if (i == 0) and (item not in car_dict):
+                if i == 0:
                     car_dict.setdefault(item, set())  # {frame: set()}
                 if i == 1:
                     car_dict[float(line[0])].add(item)
-                line_data.append(float(item))
+                line_data.append(item)
             data_list.append(line_data)
         return data_list, car_dict
 
