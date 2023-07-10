@@ -10,8 +10,8 @@ class Embedding(nn.Module):
         # cov input x: [batch, seq_len, c_in]
         self._token_embed = nn.Conv1d(in_channels=config.c_in, out_channels=config.d_model,
                                    kernel_size=3, padding=padding, padding_mode='circular', bias=False)
-        self._frm_embed = nn.Embedding(256, config.d_model, padding_idx=0)
-        self._car_embed = nn.Embedding(256, config.d_model, padding_idx=0)
+        self._frm_embed = nn.Embedding(config.frm_embed, config.d_model, padding_idx=0)
+        self._car_embed = nn.Embedding(config.id_embed, config.d_model, padding_idx=0)
 
     def forward(self, x_group):
         """
@@ -20,7 +20,18 @@ class Embedding(nn.Module):
         x = x_group[:, :, 2:]
         f = x_group[:, :, 0]
         c = x_group[:, :, 1]
-        return self._token_embed(x.permute(0, 2, 1)).transpose(1, 2) + self._frm_embed(f.int()) + self._car_embed(c.int())
+        print("car", c.shape)
+        print("c_max", c.max())
+        c_n = self._car_embed(c.int())
+        print("car_emb", c_n.shape)
+        print("frm", f.shape)
+        print("f_max", f.max())
+        f_n = self._frm_embed(f.int())
+        print("frm_emb", f_n.shape)
+        print("token", x.shape)
+        t_n = self._token_embed(x.permute(0, 2, 1)).transpose(1, 2)
+        print("token_emb", t_n.shape)
+        return t_n + f_n+ c_n
 
 class Bart(nn.Module):
     def __init__(self, config):
