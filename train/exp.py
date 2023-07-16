@@ -3,7 +3,6 @@ import numpy as np
 import os
 import time
 import torch
-import torch_npu
 import torch.nn as nn
 from torch import optim
 import torch.distributed as dist
@@ -13,7 +12,8 @@ from bartti.net import Bart
 from torch.utils.data import DataLoader
 from train.utils import metric, adjust_learning_rate
 from torch.nn.parallel import DistributedDataParallel as DDP
-
+import torch_npu
+from torch_npu.npu import amp
 
 
 class Exp_Main:
@@ -71,7 +71,8 @@ class Exp_Main:
             for i, (enc_x, dec_x, gt_x) in enumerate(vali_loader):
                 enc_x = enc_x.float().to(self.device)
                 dec_x = dec_x.float().to(self.device)
-                outputs, loss = self.model(enc_x, dec_x, gt_x)
+                with amp.autocast():
+                    outputs, loss = self.model(enc_x, dec_x, gt_x)
                 total_loss.append(loss.item())
         total_loss = np.average(total_loss)
         self.model.train()
@@ -86,6 +87,7 @@ class Exp_Main:
         path = self.args.save_path + 'checkpoint_'
 
         model_optim, scheduler = self._select_optimizer()
+        scaler = amp.GradScaler()
 
         for epoch in range(self.args.train_epochs):
             train_loader.sampler.set_epoch(epoch)
@@ -102,7 +104,8 @@ class Exp_Main:
                 dec_x = dec_x.float().to(self.device)
                 gt_x = gt_x.float().to(self.device)
 
-                _, loss = self.model(enc_x, dec_x, gt_x)
+                with amp.autocast():
+                    _, loss = self.model(enc_x, dec_x, gt_x)
                 train_loss.append(loss.item())
 
                 if (i + 1) % 100 == 0:
@@ -113,8 +116,11 @@ class Exp_Main:
                     iter_count = 0
                     time_now = time.time()
 
-                loss.backward()
-                model_optim.step()
+                scaler.scale(loss).backward()
+                scaler.step(model_optim)
+                scaler.update()
+                # loss.backward()
+                # model_optim.step()
                 if (i + 1) % 100 == 0:
                     scheduler.step()
 
@@ -143,7 +149,8 @@ class Exp_Main:
                 for i, (enc_x, dec_x, gt_x) in enumerate(test_loader):
                     enc_x = enc_x.float().to(self.device)
                     dec_x = dec_x.float().to(self.device)
-                    output, loss = self.model(enc_x, dec_x, gt_x, infer=True)
+                    with amp.autocast():
+                        output, loss = self.model(enc_x, dec_x, gt_x, infer=True)
                     output = output.detach().cpu().numpy()
                     gt_x = gt_x.detach().cpu().numpy()
                     outputs.append(output)
