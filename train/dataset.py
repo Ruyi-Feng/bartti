@@ -1,4 +1,5 @@
 from torch.utils.data import Dataset
+import torch_npu
 from bartti.noise import Noise
 import typing
 

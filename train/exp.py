@@ -3,6 +3,7 @@ import numpy as np
 import os
 import time
 import torch
+import torch_npu
 import torch.nn as nn
 from torch import optim
 import torch.distributed as dist
@@ -20,10 +21,10 @@ class Exp_Main:
         self.args = args
         self.best_score = None
         self.WARMUP = 1000
-        self.device = torch.device('cuda', local_rank)
+        self.device = torch.device('npu', local_rank)
         self.local_rank = local_rank
-        torch.cuda.set_device(local_rank)
-        dist.init_process_group(backend='nccl', timeout=timedelta(days=1))
+        torch_npu.npu.set_device(local_rank)
+        dist.init_process_group(backend='hccl',init_method="tcp//:127.0.0.1:1080", timeout=timedelta(days=1))
         self.model = self._build_model()
 
     def _build_model(self):

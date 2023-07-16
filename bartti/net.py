@@ -1,5 +1,6 @@
 import torch.nn as nn
 import torch
+import torch_npu
 
 class Embedding(nn.Module):
     def __init__(self, config):

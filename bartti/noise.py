@@ -3,6 +3,7 @@ import math
 import numpy as np
 import random
 import torch
+import torch_npu
 import typing
 
 MaskScheme = typing.List[typing.Tuple[int, int]]

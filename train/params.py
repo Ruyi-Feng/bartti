@@ -1,5 +1,4 @@
 import argparse
-import torch
 
 def params():
     parser = argparse.ArgumentParser(description='Non-stationary Transformers for Time Series Forecasting')
