@@ -19,7 +19,7 @@ class Exp_Main:
     def __init__(self, args, local_rank=-1):
         self.args = args
         self.best_score = None
-        self.WARMUP = 1000
+        self.WARMUP = 4000
         self.device = torch.device('cuda', local_rank)
         self.local_rank = local_rank
         torch.cuda.set_device(local_rank)
@@ -48,11 +48,13 @@ class Exp_Main:
 
     def _select_optimizer(self):
         model_optim = optim.Adam(self.model.parameters(), lr=self.args.learning_rate)
-        warmup = self.WARMUP
-        s1 = optim.lr_scheduler.LinearLR(model_optim, start_factor=0.001, total_iters=warmup)
-        s2 = optim.lr_scheduler.LinearLR(model_optim, start_factor=1.0, end_factor=0.0001, total_iters=warmup * 15)
-        scheduler = optim.lr_scheduler.SequentialLR(model_optim, schedulers=[s1, s2], milestones=[warmup * 40])
+        # warmup = self.WARMUP
+        # s1 = optim.lr_scheduler.LinearLR(model_optim, start_factor=0.001, total_iters=warmup)
+        # s2 = optim.lr_scheduler.LinearLR(model_optim, start_factor=1.0, end_factor=0.0001, total_iters=warmup * 40)
+        # scheduler = optim.lr_scheduler.SequentialLR(model_optim, schedulers=[s1, s2], milestones=[warmup * 20])
         # scheduler = optim.lr_scheduler.ExponentialLR(model_optim, gamma=0.9)
+        lamda1 = lambda step: 1 / np.sqrt(max(step , self.WARMUP))
+        scheduler = optim.lr_scheduler.LambdaLR(model_optim, lr_lambda=lamda1, last_epoch=-1)
         return model_optim, scheduler
 
     def _save_model(self, vali_loss, path):
@@ -114,8 +116,7 @@ class Exp_Main:
 
                 loss.backward()
                 model_optim.step()
-                if (i + 1) % 100 == 0:
-                    scheduler.step()
+                scheduler.step()
 
             if dist.get_rank() == 0:
                 # print("Epoch: {} cost time: {}".format(epoch + 1, time.time() - epoch_time))
