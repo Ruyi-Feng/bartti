@@ -67,6 +67,7 @@ class Exp_Main:
             for i, (enc_x, dec_x, gt_x) in enumerate(vali_loader):
                 enc_x = enc_x.float().to(self.device)
                 dec_x = dec_x.float().to(self.device)
+                gt_x = gt_x.float().to(self.device)
                 with amp.autocast():
                     outputs, loss = self.model(enc_x, dec_x, gt_x)
                 total_loss.append(loss.item())
