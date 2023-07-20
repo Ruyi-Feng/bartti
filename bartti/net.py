@@ -24,7 +24,7 @@ class Embedding(nn.Module):
         c_n = self._car_embed(c.int())
         f_n = self._frm_embed(f.int())
         t_n = self._token_embed(x.permute(0, 2, 1)).transpose(1, 2)
-        return t_n + f_n + c_n + self._pos_embed.data[:, x_group.shape(1), :]
+        return t_n + f_n + c_n + self._pos_embed.data[:, x_group.shape[1]-1, :]
 
 class Bart(nn.Module):
     def __init__(self, config):
@@ -46,8 +46,10 @@ class Bart(nn.Module):
         dec_token = self.dec_embeding(dec_x)
         tgt_mask = None
         if not infer:
+            print("decoder_size", dec_token.size)
+            print("decoder_shape", dec_token.shape)
             tgt_mask = nn.Transformer.generate_square_subsequent_mask(
-                dec_token.size(1)).to(enc_token.device)
+                dec_token.size[1]).to(enc_token.device)
         output = self.bart(enc_token.permute(1, 0, 2), dec_token.permute(1, 0, 2), tgt_mask=tgt_mask).permute(1, 2, 0)
         outputs = self.d_reduction(output).permute(0, 2, 1)  # -> batch, seq_len, d_model
         loss = self.criterion(outputs, gt_x)
