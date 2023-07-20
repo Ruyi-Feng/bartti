@@ -46,10 +46,8 @@ class Bart(nn.Module):
         dec_token = self.dec_embeding(dec_x)
         tgt_mask = None
         if not infer:
-            print("decoder_size", dec_token.size)
-            print("decoder_shape", dec_token.shape)
             tgt_mask = nn.Transformer.generate_square_subsequent_mask(
-                dec_token.size[1]).to(enc_token.device)
+                sz=dec_token.size(1)).to(enc_token.device)
         output = self.bart(enc_token.permute(1, 0, 2), dec_token.permute(1, 0, 2), tgt_mask=tgt_mask).permute(1, 2, 0)
         outputs = self.d_reduction(output).permute(0, 2, 1)  # -> batch, seq_len, d_model
         loss = self.criterion(outputs, gt_x)
