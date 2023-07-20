@@ -24,7 +24,7 @@ class Exp_Main:
         self.device = torch.device('npu', local_rank)
         self.local_rank = local_rank
         torch_npu.npu.set_device(local_rank)
-        dist.init_process_group(backend='hccl',init_method="tcp//:127.0.0.1:1080", timeout=timedelta(days=1))
+        dist.init_process_group(backend='hccl', timeout=timedelta(days=1))  # init_method="tcp//:127.0.0.1:1080",
         self.model = self._build_model()
 
     def _build_model(self):
