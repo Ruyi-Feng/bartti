@@ -156,4 +156,3 @@ class Exp_Main:
             mae, mse, rmse, mape, mspe = metric(outputs, trues)
             print('mse:{}, mae:{}'.format(mse, mae))
             return trues, outputs
-
