@@ -9,7 +9,7 @@ def params():
     parser.add_argument('--interval', type=float, default=0.03)
 
     parser.add_argument('--is_train', type=bool, default=True, help='if True is train model')
-    parser.add_argument('--learning_rate', type=float, default=0.0001, help='original leaning rate')
+    parser.add_argument('--learning_rate', type=float, default=0.001, help='original leaning rate')
     parser.add_argument('--train_epochs', type=int, default=100, help='total train epoch')
     parser.add_argument('--batch_size', type=int, default=230, help='batch size')
     parser.add_argument('--drop_last', type=bool, default=True)

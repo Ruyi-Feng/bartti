@@ -3,7 +3,6 @@ import numpy as np
 import os
 import time
 import torch
-import torch.nn as nn
 from torch import optim
 import torch.distributed as dist
 from torch.utils.data.distributed import DistributedSampler
@@ -32,7 +31,7 @@ class Exp_Main:
             model.load_state_dict(torch.load(self.args.save_path + 'checkpoint_best.pth', map_location=torch.device('cpu')))
         elif os.path.exists(self.args.save_path + 'checkpoint_last.pth'):
             model.load_state_dict(torch.load(self.args.save_path + 'checkpoint_last.pth', map_location=torch.device('cpu')))
-        return DDP(model, device_ids=[self.local_rank], output_device=self.local_rank)
+        return DDP(model, device_ids=[self.local_rank], output_device=self.local_rank, find_unused_parameters=True)
 
     def _get_data(self, split: str='train'):
         # batch_sz = (self.args.batch_size // dist.get_world_size()) if split == 'val' else self.args.batch_size
