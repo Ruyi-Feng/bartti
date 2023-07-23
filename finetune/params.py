@@ -21,8 +21,8 @@ def params():
     parser.add_argument('--id_embed', type=int, default=128, help='output size')
     parser.add_argument('--d_model', type=int, default=64, help='dimension of model')
     parser.add_argument('--n_heads', type=int, default=4, help='num of heads')
-    parser.add_argument('--e_layers', type=int, default=3, help='num of encoder layers')
-    parser.add_argument('--d_layers', type=int, default=3, help='num of decoder layers')
+    parser.add_argument('--e_layers', type=int, default=6, help='num of encoder layers')
+    parser.add_argument('--d_layers', type=int, default=6, help='num of decoder layers')
 
     parser.add_argument('--activation', type=str, default='gelu', help='activation')
     parser.add_argument('--lradj', default='type1')
