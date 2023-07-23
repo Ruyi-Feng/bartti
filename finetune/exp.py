@@ -16,8 +16,8 @@ from train.utils import metric
 class Exp_Ft:
     def __init__(self, args, local_rank=-1):
         print("---------init finetune exp---------------")
-        self.args.save_path = self.args.save_path + self.args.task + '/'
         self.args = args
+        self.args.save_path = self.args.save_path + self.args.task + '/'
         self.best_score = None
         self.WARMUP = 4000
         self.device = torch.device('npu', local_rank)
