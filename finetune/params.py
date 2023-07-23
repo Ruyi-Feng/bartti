@@ -5,8 +5,8 @@ def params():
     parser = argparse.ArgumentParser(description='transformer finetune')
     parser.add_argument('--task', type=str, default='compensation', help='finetune task')
     parser.add_argument('--save_path', type=str, default='./checkpoints/finetune/', help='location of model checkpoints')
-    parser.add_argument('--index_path', type=str, default='./data/index.bin')
-    parser.add_argument('--data_path', type=str, default='./data/data.bin')
+    parser.add_argument('--index_path', type=str, default='./data/index.dat')
+    parser.add_argument('--data_path', type=str, default='./data/data.dat')
 
     parser.add_argument('--is_train', type=bool, default=True, help='if True is train model')
     parser.add_argument('--learning_rate', type=float, default=1e-6, help='original leaning rate')
