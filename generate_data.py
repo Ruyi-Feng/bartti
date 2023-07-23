@@ -54,4 +54,12 @@ if __name__ == '__main__':
              "test34": {"path": "H://CitySim//ExpresswayA//Expressway A (Weaving Segment)//Trajectories//ExpresswayA-29.csv", "scale": 0.056, "labels": citysim_label},
              }
 
-    generate_data(flnms)
+    flnms_val = {
+             "val1": {"path": "H://CitySim//ExpresswayA//Expressway A (Weaving Segment)//Trajectories//ExpresswayA-10.csv", "scale": 0.056, "labels": citysim_label},
+             "val2": {"path": "H://CitySim//ExpresswayA//Expressway A (Weaving Segment)//Trajectories//ExpresswayA-11.csv", "scale": 0.056, "labels": citysim_label},
+             "val3": {"path": "H://CitySim//ExpresswayA//Expressway A (Weaving Segment)//Trajectories//ExpresswayA-15.csv", "scale": 0.056, "labels": citysim_label},
+             "val4": {"path": "H://CitySim//ExpresswayA//Expressway A (Weaving Segment)//Trajectories//ExpresswayA-16.csv", "scale": 0.056, "labels": citysim_label},
+             "val5": {"path": "H://CitySim//ExpresswayA//Expressway A (Weaving Segment)//Trajectories//ExpresswayA-18.csv", "scale": 0.056, "labels": citysim_label},
+             }
+    # generate_data(flnms)
+    generate_data(flnms_val)

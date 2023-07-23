@@ -42,8 +42,8 @@ class Data_Form:
             data["width"] = abs(data[cols.right] - data[cols.left])
             data["height"] = abs(data[cols.bottom] - data[cols.top])
         self.min_y = data[cols.top].min() - 10  # 用来把数据集的y规范到较小的范围
-        f_data = open(".\data\data.bin", 'ab+')
-        f_index = open(".\data\index.bin", 'ab+')
+        f_data = open("./data/val/data.bin", 'ab+')
+        f_index = open("./data/val/index.bin", 'ab+')
         self.scale = self.flnms[flnm]["scale"]
         data_s = self._split_data(data, cols)
         data_s = data_s.sort_values(by=["split", cols.frame, cols.car_id]).reset_index(drop=True)
