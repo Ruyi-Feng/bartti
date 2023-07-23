@@ -4,12 +4,11 @@ import typing
 
 
 class Dataset_Bart(Dataset):
-    def __init__(self, index_path: str=".\\data\\index.bin", data_path:str=".\\data\\data.bin", interval:float=0.03, max_seq_len: int=512):
+    def __init__(self, index_path: str=".\\data\\index.bin", data_path:str=".\\data\\data.bin", max_seq_len: int=512):
         self.trans = Noise(max_seq_len=max_seq_len)
         self.max_car_num = int(max_seq_len / 5) - 1
         self.train_idx = []
         self.dataset_length = 0
-        self.IN = interval
         self.idx_path = index_path
         self.data_path = data_path
         self.f_data = open(self.data_path, 'rb')
