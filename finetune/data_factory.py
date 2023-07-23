@@ -6,10 +6,10 @@ data_dict = {
     'simulation': Data_Simulation,
 }
 
-def gen_dataset(config, mark="compensation"):
+def gen_dataset(config):
+    mark = config.task
     Data = data_dict[mark]
     data_set = Data(index_path=config.index_path,
                     data_path=config.data_path,
-                    interval=config.interval,
                     max_seq_len=config.max_seq_len)
     return data_set

@@ -3,8 +3,8 @@ import random
 
 
 class Data_Compensation(Dataset_Base):
-    def __init__(self, index_path: str=".\\data\\index.bin", data_path:str=".\\data\\data.bin", interval:float=0.03, max_seq_len: int=512):
-        super(Dataset_Base, self).__init__(index_path, data_path, max_seq_len)
+    def __init__(self, index_path: str=".\\data\\index.bin", data_path:str=".\\data\\data.bin", max_seq_len: int=512):
+        super(Data_Compensation, self).__init__(index_path, data_path, max_seq_len)
 
     def _process(self, x, car_set):
         # [[frame, id, x, y, w, h], ...]
@@ -22,8 +22,8 @@ class Data_Compensation(Dataset_Base):
 
 
 class Data_Prediction(Dataset_Base):
-    def __init__(self, index_path: str=".\\data\\index.bin", data_path:str=".\\data\\data.bin", interval:float=0.03, max_seq_len: int=512):
-        super(Dataset_Base, self).__init__(index_path, data_path, max_seq_len)
+    def __init__(self, index_path: str=".\\data\\index.bin", data_path:str=".\\data\\data.bin", max_seq_len: int=512):
+        super(Data_Prediction, self).__init__(index_path, data_path, max_seq_len)
 
     def _process(self, x, car_set):
         # [[frame, id, x, y, w, h], ...]
@@ -41,8 +41,8 @@ class Data_Prediction(Dataset_Base):
 
 
 class Data_Simulation(Dataset_Base):
-    def __init__(self, index_path: str=".\\data\\index.bin", data_path:str=".\\data\\data.bin", interval:float=0.03, max_seq_len: int=512):
-        super(Dataset_Base, self).__init__(index_path, data_path, max_seq_len)
+    def __init__(self, index_path: str=".\\data\\index.bin", data_path:str=".\\data\\data.bin", max_seq_len: int=512):
+        super(Data_Simulation, self).__init__(index_path, data_path, max_seq_len)
 
     def _process(self, x, car_set):
         # [[frame, id, x, y, w, h], ...]

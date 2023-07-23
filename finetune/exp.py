@@ -8,13 +8,14 @@ import torch.distributed as dist
 from torch.utils.data.distributed import DistributedSampler
 from bartti.net import Bart
 from torch.utils.data import DataLoader
-from train.utils import metric
 from torch.nn.parallel import DistributedDataParallel as DDP
 
 
 class Exp_Ft:
     def __init__(self, args, local_rank=-1):
+        print("---------init finetune exp---------------")
         self.args = args
+        self.args.save_path = self.args.save_path + self.args.task + '/'
         self.best_score = None
         self.WARMUP = 4000
         self.device = torch.device('cuda', local_rank)
@@ -25,6 +26,7 @@ class Exp_Ft:
 
     def _static_param(self, model):
         # 冻结参数的方式
+        print("###### static param #######")
         for param in model.enc_embeding.parameters():
             param.requires_grad = False
         for param in model.bart.encoder.parameters():
@@ -33,15 +35,18 @@ class Exp_Ft:
 
     def _build_model(self):
         model = Bart(self.args).float().to(self.device)
+        print(self.args.save_path)
         if os.path.exists(self.args.save_path + 'checkpoint_best.pth'):
+            print("load checkpoints best", self.args.save_path)
             model.load_state_dict(torch.load(self.args.save_path + 'checkpoint_best.pth', map_location=torch.device('cpu')))
         elif os.path.exists(self.args.save_path + 'checkpoint_last.pth'):
+            print("load checkpoints last", self.args.save_path)
             model.load_state_dict(torch.load(self.args.save_path + 'checkpoint_last.pth', map_location=torch.device('cpu')))
         model = self._static_param(model)
         return DDP(model, device_ids=[self.local_rank], output_device=self.local_rank, find_unused_parameters=True)
 
-    def _get_data(self, mark: str='compensation'):
-        data_set = gen_dataset(self.args, mark)
+    def _get_data(self):
+        data_set = gen_dataset(self.args)
         batch_sz = self.args.batch_size
         sampler = None
         drop_last = False
@@ -82,7 +87,7 @@ class Exp_Ft:
 
     def train(self):
         _, train_loader = self._get_data()
-        vali_data, vali_loader = self._get_data('val')
+        vali_data, vali_loader = self._get_data()
 
         train_steps = len(train_loader)
         path = self.args.save_path + 'checkpoint_'
@@ -129,7 +134,7 @@ class Exp_Ft:
 
     def test(self):
         if dist.get_rank() == 0:
-            test_data, test_loader = self._get_data('val')
+            test_data, test_loader = self._get_data()
             self.model.eval()
             outputs = []
             trues = []
