@@ -140,6 +140,8 @@ class Exp_Ft:
             result = dict()
             with torch.no_grad():
                 for i, (enc_x, dec_x, gt_x) in enumerate(test_loader):
+                    if i % 100 == 0:
+                        print("test: %d"%i)
                     enc_x = enc_x.float().to(self.device)
                     dec_x = dec_x.float().to(self.device)
                     output, loss = self.model(enc_x, dec_x, gt_x, infer=True)

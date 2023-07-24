@@ -9,6 +9,8 @@ class Evaluation:
         self.args = finetune_param()
         self.args.data_path = './data/val/data.bin'
         self.args.index_path = './data/val/index.bin'
+        self.args.batch_size = 1
+        self.args.is_train = False
         self.args.task = task
         if if_pretrain:
             self.args.save_path = './checkpoints/pretrain/'
