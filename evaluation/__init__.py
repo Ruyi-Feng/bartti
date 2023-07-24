@@ -54,15 +54,17 @@ class Evaluation:
         if "simulate" in check_list:
             self._check_simulate(rslt_path)
 
-    def _filt(self, gt, pd):
-        gt_new, pd_new = [], []
+    def _filt(self, gt, pd, enc):
+        gt_new, pd_new, enc_new = [], [], []
         for i in range(len(gt)):
             if round(gt[i][0]) == 0:
                 break
             gi = [round(gt[i][0]), round(gt[i][1])] + gt[i][2:]
             pi = [round(pd[i][0]), round(pd[i][1])] + pd[i][2:]
+            enc = [round(enc[i][0]), round(enc[i][1])] + enc[i][2:]
             gt_new.append(gi)
             pd_new.append(pi)
+            enc_new.append(enc)
         return gt_new, pd_new
 
     def _dis(self, a1, a2, w1, w2):
@@ -95,7 +97,7 @@ class Evaluation:
         info = self.load(save_path)
         overlap = 0
         for k, values in info.items():
-            gt, pd = self._filt(values["gt"], values["pd"])
+            gt, pd, enc = self._filt(values["gt"], values["pd"], values["enc"])
             overlap += self._count_overlap(pd)
         return overlap
 
