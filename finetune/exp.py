@@ -9,6 +9,7 @@ from torch.utils.data.distributed import DistributedSampler
 from bartti.net import Bart
 from torch.utils.data import DataLoader
 from torch.nn.parallel import DistributedDataParallel as DDP
+from train.utils import metric
 
 
 class Exp_Ft:
@@ -136,21 +137,19 @@ class Exp_Ft:
         if dist.get_rank() == 0:
             test_data, test_loader = self._get_data()
             self.model.eval()
-            outputs = []
-            trues = []
+            result = dict()
             with torch.no_grad():
                 for i, (enc_x, dec_x, gt_x) in enumerate(test_loader):
                     enc_x = enc_x.float().to(self.device)
                     dec_x = dec_x.float().to(self.device)
                     output, loss = self.model(enc_x, dec_x, gt_x, infer=True)
-                    output = output.detach().cpu().numpy()
-                    gt_x = gt_x.detach().cpu().numpy()
-                    outputs.append(output)
-                    trues.append(gt_x)
-            outputs = np.array(outputs)
-            outputs = outputs.reshape(-1, outputs.shape[-2], outputs.shape[-1])
-            trues = np.array(trues)
-            trues = trues.reshape(-1, trues.shape[-2], trues.shape[-1])
-            mae, mse, rmse, mape, mspe = metric(outputs, trues)
-            print('mse:{}, mae:{}'.format(mse, mae))
-            return trues, outputs
+                    output = output.detach().cpu().tolist()
+                    gt_x = gt_x.detach().cpu().tolist()
+                    result.update({i: {"gt": gt_x, "pd": output}})
+            # outputs = np.array(outputs)
+            # outputs = outputs.reshape(-1, outputs.shape[-2], outputs.shape[-1])
+            # trues = np.array(trues)
+            # trues = trues.reshape(-1, trues.shape[-2], trues.shape[-1])
+            # mae, mse, rmse, mape, mspe = metric(outputs, trues)
+            # print('mse:{}, mae:{}'.format(mse, mae))
+            return result
