@@ -10,7 +10,7 @@ from train.dataset import Dataset_Bart
 from bartti.net import Bart
 from torch.utils.data import DataLoader
 from torch.nn.parallel import DistributedDataParallel as DDP
-
+from train.utils import metric
 
 
 class Exp_Main:
@@ -145,6 +145,7 @@ class Exp_Main:
                     gt_x = gt_x.detach().cpu().numpy()
                     outputs.append(output)
                     trues.append(gt_x)
+                    break
             outputs = np.array(outputs)
             outputs = outputs.reshape(-1, outputs.shape[-2], outputs.shape[-1])
             trues = np.array(trues)
