@@ -116,7 +116,7 @@ class Exp_Ft:
                 train_loss.append(loss.item())
 
                 if (i + 1) % 100 == 0:
-                    print("\titers: {0}, epoch: {1} | loss: {2:.7f}".format(i + 1, epoch + 1, loss.item()))
+                    print("\ttask: {0}, iters: {1}, epoch: {2} | loss: {3:.7f}".format(self.args.task, i + 1, epoch + 1, loss.item()))
                     iter_count = 0
 
                 scaler.scale(loss).backward()

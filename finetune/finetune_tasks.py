@@ -15,7 +15,7 @@ class Data_Compensation(Dataset_Base):
         new_x = []
         frm_preserve = [frm_head, frm_head + 4]
         for item in x:
-            if (item[1] in del_id) and (item[2] not in frm_preserve):
+            if (item[1] in del_id) and (item[0] not in frm_preserve):
                 continue
             new_x.append(item)
         return new_x
